@@ -1,42 +1,38 @@
-## RPKI updates 09/02:
+# RPKI updates 09/02:
 
-To deploy RPKI:
-- You need to specify one host for RPKI within an AS - the host name must include rpki in the naming. A custom IP is needed in `10.asn.0.71`.
-Here is an example:
+### To deploy RPKI:
+- You need to specify one host for RPKI within an AS. The host name must include `rpki` in the naming. A custom IP is needed in this form `10.asn.0.71`.  
+
+### Here is an example:
 ```
 as150.createHost('host_rpki').joinNetwork('net0', address = '10.150.0.71')
 ```
+- A03-real-world is an edited ready to run example.
 - By doing the above the RPKI validator should be installed and the RTR port listening on port 3323.
-- The second step is the bird configuration. Instead of of using Ebgp for peering, use E
-## Issues with Bird configuration:
+- You can check the status of the rpki using the this command in birdc: 'show protocol all rpki'
+- You can check `/var/log/bird.log` for debugging.
+- This project implments best case scenario, where all ASs has an rpki validatior implemented. You can manual reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
 
-- The bird configuration file is on `/etc/bird/bird.conf`
-- Here are the changes I made to bird.conf as the [bird documentation](https://bird.network.cz/?get_doc&v=20&f=bird-6.html#ss6.13) suggested.
+### The changes done on the .py files are:
+
+- The connection to the real internet - `/seedemu/core/Node.py` line `1037 and 1045`.
+- The validator installation and RTR server setup - `/seedemu/compiler/Docker.py` line `25-26`, and `865-887`.
+- Bird configuration - `/seedemu/layers/Ebgp.py` line `41-82`, `146`, and `161-206`.
+- was a bit complicated to change; if there was an issue more likely due to the configuration. 
+
+### To test RPKI - you can use the following to haijack a prfix.
 ```
-roa4 table r4;
-roa6 table r6;
-
-protocol rpki {
-        roa4 { table r4; };
-        roa6 { table r6; };
-
-        remote 10.150.0.71 port 3323
-        retry keep 5;
-        refresh keep 30;
-        expire 600;
-
-}
-
-filter peer_in_v4 {
-        if (roa_check(r4, net, bgp_path.last) = ROA_INVALID) then
-        {
-                print "Ignore RPKI invalid ", net, " for ASN ", bgp_path.last;
-                reject;
-        }
-        accept;
+protocol static hijacks {
+    ipv4 {
+        table t_bgp;
+    };
+    route 8.8.8.0/25 blackhole   { bgp_large_community.add(LOCAL_COMM); };
+    route 8.8.8.128/25 blackhole { bgp_large_community.add(LOCAL_COMM); };
 }
 ```
-- When trying to import a filter, I got this error that I could not fix: `syntax error, unexpected CF_SYM_UNDEFINED`.
+
+### Next Step:
+- [krill](https://krill.docs.nlnetlabs.nl/en/stable/testbed.html) implmention: to creat an in hosue trust ancur locaustor (TAL)
 
 --------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------
