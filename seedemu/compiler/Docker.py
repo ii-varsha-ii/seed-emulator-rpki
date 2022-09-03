@@ -22,6 +22,8 @@ RUN echo 'exec zsh' > /root/.bashrc
 DockerCompilerFileTemplates['start_script'] = """\
 #!/bin/bash
 {startCommands}
+{rtrServer}
+{birdConf}
 echo "ready! run 'docker exec -it $HOSTNAME /bin/zsh' to attach to this node" >&2
 for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done
 tail -f /dev/null
@@ -830,7 +832,7 @@ class Docker(Compiler):
         dockerfile = DockerCompilerFileTemplates['dockerfile']
         mkdir(real_nodename)
         chdir(real_nodename)
-
+        
         (image, soft) = self._selectImageFor(node)
 
         if not node.hasAttribute('__soft_install_tiers') and len(soft) > 0:
@@ -858,10 +860,32 @@ class Docker(Compiler):
 
         for (cmd, fork) in node.getStartCommands():
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
+       
+        #BA - for rpki installtion use -> real_nodename
+        if 'host_rpki' in real_nodename:
 
-        dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
-            startCommands = start_commands
-        ))
+            dockerfile += 'RUN apt-get update && apt-get upgrade -y\n'
+            dockerfile += 'RUN apt install rsync grsync -y\n'
+            dockerfile += 'RUN apt install build-essential -y\n'
+            dockerfile += 'RUN apt-get install manpages-dev\n'
+            dockerfile += 'RUN curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\n'
+            dockerfile += 'RUN . $HOME/.cargo/env\n'
+            dockerfile += 'ENV PATH="/root/.cargo/bin:${PATH}"\n'
+            dockerfile += 'RUN cargo install -f routinator\n'
+            dockerfile += 'RUN routinator init --accept-arin-rpa\n'
+            dockerfile += 'RUN routinator -v vrps -o ROAs.csv\n'
+
+            dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
+                startCommands = start_commands,
+                rtrServer= 'routinator server --rtr {ip}:3323 --refresh=300 --detach &\n'.format(
+                    ip = node.getInterfaces()[0].getAddress()),
+                birdConf = 'birdc configure')
+            )
+        else:
+            dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
+                startCommands=start_commands, rtrServer = 'echo', birdConf = 'birdc configure')
+            )
+
 
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
@@ -877,9 +901,11 @@ class Docker(Compiler):
         for (cpath, hpath) in node.getImportedFiles().items():
             dockerfile += self._importFile(cpath, hpath)
 
+        
+        
         dockerfile += 'CMD ["/start.sh"]\n'
         print(dockerfile, file=open('Dockerfile', 'w'))
-
+        
         chdir('..')
 
         name = self.__naming_scheme.format(
@@ -889,9 +915,9 @@ class Docker(Compiler):
             displayName = node.getDisplayName() if node.getDisplayName() != None else node.getName(),
             primaryIp = node.getInterfaces()[0].getAddress()
         )
-
+       
         name = sub(r'[^a-zA-Z0-9_.-]', '_', name)
-
+        
         return DockerCompilerFileTemplates['compose_service'].format(
             nodeId = real_nodename,
             nodeName = name,
@@ -901,6 +927,7 @@ class Docker(Compiler):
             labelList = self._getNodeMeta(node),
             volumes = volumes
         )
+
 
     def _compileNet(self, net: Network) -> str:
         """!

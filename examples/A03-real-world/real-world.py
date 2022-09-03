@@ -36,6 +36,8 @@ as150.createRouter('r2').joinNetwork('net0').joinNetwork('net1')
 as150.createRouter('r3').joinNetwork('net1').joinNetwork('net2')
 as150.createRouter('r4').joinNetwork('net2').joinNetwork('ix101')
 
+as150.createHost('host_rpki').joinNetwork('net0', address = '10.150.0.71')
+
 
 ###############################################################################
 # Create AS-151
@@ -47,9 +49,7 @@ as151.createNetwork('net0').enableRemoteAccess(ovpn)
 as151.createRouter('router0').joinNetwork('net0').joinNetwork('ix100')
 
 # Create a web host
-as151.createHost('web').joinNetwork('net0')
-web.install('web1')
-emu.addBinding(Binding('web1', filter = Filter(asn = 151, nodeName = 'web')))
+as151.createHost('host_rpki').joinNetwork('net0', address = '10.151.0.71')
 
 
 ###############################################################################
@@ -63,8 +63,7 @@ as152.createRouter('router0').joinNetwork('net0').joinNetwork('ix101')
 
 # Create a web host
 as152.createHost('web').joinNetwork('net0')
-web.install('web2')
-emu.addBinding(Binding('web2', filter = Filter(asn = 152, nodeName = 'web')))
+as152.createHost('host_rpki').joinNetwork('net0', address = '10.152.0.71')
 
 
 ###############################################################################

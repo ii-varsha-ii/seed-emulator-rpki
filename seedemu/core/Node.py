@@ -1033,14 +1033,16 @@ class RealWorldRouter(Router):
         self.addTable('t_rw')
         statics = '\n    ipv4 { table t_rw; import all; };\n    route ' + ' via !__default_gw__!;\n    route '.join(self.__realworld_routes)
         statics += ' via !__default_gw__!;\n'
+        #BA
+        statics += '    route 0.0.0.0/0 via !__default_gw__!;\n'
         for prefix in self.__realworld_routes:
             # nat matched only
             self.appendFile('/rw_configure_script', 'iptables -t nat -A POSTROUTING -d {} -j MASQUERADE\n'.format(prefix))
-            
             if self.__hide_hops:
                 # remove realworld hops
                 self.appendFile('/rw_configure_script', 'iptables -t mangle -A POSTROUTING -d {} -j TTL --ttl-set 64\n'.format(prefix))
-
+        #BA
+        self.appendFile('/rw_configure_script', 'iptables -t nat -A POSTROUTING -d 0.0.0.0/0 -j MASQUERADE\n')
         self.addProtocol('static', 'real_world', statics)
         self.addTablePipe('t_rw', 't_bgp', exportFilter = 'filter { bgp_large_community.add(LOCAL_COMM); bgp_local_pref = 40; accept; }')
         # self.addTablePipe('t_rw', 't_ospf') # TODO
