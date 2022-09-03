@@ -1,17 +1,17 @@
 # RPKI updates 09/02:
 
 ### To deploy RPKI:
-- You need to specify one host for RPKI within an AS. The host name must include `rpki` in the naming. A custom IP is needed in this form `10.asn.0.71`.  
+- You need to specify one host for RPKI within an AS. The hostname must include `rpki` in the naming. A custom IP is needed in this form `10.asn.0.71`.  
 
 ### Here is an example:
 ```
 as150.createHost('host_rpki').joinNetwork('net0', address = '10.150.0.71')
 ```
-- A03-real-world is an edited ready to run example.
+- A03-real-world is an edited ready-to-run example.
 - By doing the above the RPKI validator should be installed and the RTR port listening on port 3323.
-- You can check the status of the rpki using the this command in birdc: 'show protocol all rpki'
+- You can check the status of the rpki using this command in birdc: 'show protocol all rpki'
 - You can check `/var/log/bird.log` for debugging.
-- This project implments best case scenario, where all ASs has an rpki validatior implemented. You can manual reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
+- This modification implements the best case scenario, where all ASs has a rpki validator implemented. You can manual reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
 
 ### The changes done on the .py files are:
 
@@ -20,7 +20,7 @@ as150.createHost('host_rpki').joinNetwork('net0', address = '10.150.0.71')
 - Bird configuration - `/seedemu/layers/Ebgp.py` line `41-82`, `146`, and `161-206`.
 - was a bit complicated to change; if there was an issue more likely due to the configuration. 
 
-### To test RPKI - you can use the following to haijack a prfix.
+### To test RPKI - you can use the following to hijack a prefix.
 ```
 protocol static hijacks {
     ipv4 {
@@ -32,7 +32,7 @@ protocol static hijacks {
 ```
 
 ### Next Step:
-- [krill](https://krill.docs.nlnetlabs.nl/en/stable/testbed.html) implmention: to creat an in hosue trust ancur locaustor (TAL)
+- [krill](https://krill.docs.nlnetlabs.nl/en/stable/testbed.html) implementation: to create a local Trust Anchor Locator (TAL)
 
 --------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------
