@@ -26,8 +26,8 @@ protocol static hijacks {
     ipv4 {
         table t_bgp;
     };
-    route 8.8.8.0/25 blackhole   { bgp_large_community.add(LOCAL_COMM); };
-    route 8.8.8.128/25 blackhole { bgp_large_community.add(LOCAL_COMM); };
+    route 74.80.186.0/25 blackhole   { bgp_large_community.add(LOCAL_COMM); };
+    route 74.80.186.128/25 blackhole { bgp_large_community.add(LOCAL_COMM); };
 }
 ```
 
