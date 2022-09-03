@@ -11,14 +11,14 @@ as150.createHost('host_rpki').joinNetwork('net0', address = '10.150.0.71')
 - By doing the above the RPKI validator should be installed and the RTR port listening on port 3323.
 - You can check the status of the rpki using this command in birdc: 'show protocol all rpki'
 - You can check `/var/log/bird.log` for debugging.
-- This modification implements the best case scenario, where all ASs has a rpki validator implemented. You can manual reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
+- This modification implements the best case scenario, where all ASs has a rpki validator implemented. You can reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
 
 ### The changes done on the .py files are:
 
 - The connection to the real internet - `/seedemu/core/Node.py` line `1037 and 1045`.
 - The validator installation and RTR server setup - `/seedemu/compiler/Docker.py` line `25-26`, and `865-887`.
-- Bird configuration - `/seedemu/layers/Ebgp.py` line `41-82`, `146`, and `161-206`.
-- was a bit complicated to change; if there was an issue more likely due to the configuration. 
+- Bird configuration - `/seedemu/layers/Ebgp.py` line `41-82`, `146`, and `161-206`. 
+- If there is an issue, it's more likely due to the configuration.
 
 ### To test RPKI - you can use the following to hijack a prefix.
 ```
