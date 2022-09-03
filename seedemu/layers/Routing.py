@@ -5,6 +5,8 @@ from ipaddress import IPv4Network
 RoutingFileTemplates: Dict[str, str] = {}
 
 RoutingFileTemplates["rs_bird"] = """\
+log "/var/log/bird.log" all;
+debug protocols all;
 router id {routerId};
 protocol device {{
 }}
