@@ -17,6 +17,8 @@ RoutingFileTemplates["rnode_bird_direct_interface"] = """
 """
 
 RoutingFileTemplates["rnode_bird"] = """\
+log "/var/log/bird.log" all;
+debug protocols all;
 router id {routerId};
 ipv4 table t_direct;
 protocol device {{
@@ -50,14 +52,14 @@ class Routing(Layer):
     When this layer is rendered, two new methods will be added to the router
     node and can be used by other layers: (1) addProtocol: add new protocol
     block to BIRD, and (2) addTable: add new routing table to BIRD.
-    
+
     This layer also assign loopback address for iBGP/LDP, etc., for other
     protocols to use later and as router id.
     """
 
     __loopback_assigner: IPv4Network
     __loopback_pos: int
-    
+
     def __init__(self, loopback_range: str = '10.0.0.0/16'):
         """!
         @brief Routing layre constructor.
@@ -69,7 +71,7 @@ class Routing(Layer):
         self.__loopback_assigner = IPv4Network(loopback_range)
         self.__loopback_pos = 1
         self.addDependency('Base', False, False)
-    
+
     def getName(self) -> str:
         return "Routing"
 
@@ -80,19 +82,6 @@ class Routing(Layer):
         node.addBuildCommand('mkdir -p /usr/share/doc/bird2/examples/')
         node.addBuildCommand('touch /usr/share/doc/bird2/examples/bird.conf')
         node.addBuildCommand('apt-get update && apt-get install -y --no-install-recommends bird2')
-        #BA ---
-        #needs to an if statment to make some router have rpki and other not
-        node.addBuildCommand("apt-get update && apt-get upgrade -y")
-        node.addBuildCommand("apt install rsync grsync -y")
-        node.addBuildCommand("apt install build-essential -y")
-        node.addBuildCommand("apt-get install manpages-dev")
-        node.addBuildCommand("curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
-        node.addBuildCommand(". $HOME/.cargo/env")
-        node.addBuildCommandENV('PATH="/root/.cargo/bin:${PATH}"')
-        node.addBuildCommand("cargo install -f routinator")
-        node.addBuildCommand("routinator init --accept-arin-rpa")
-        node.addBuildCommand("routinator -v vrps -o ROAs.csv")
-
 
     def configure(self, emulator: Emulator):
         reg = emulator.getRegistry()
@@ -111,9 +100,9 @@ class Routing(Layer):
 
                 if not issubclass(rs_node.__class__, Router): rs_node.__class__ = Router
                 rs_node.setFile("/etc/bird/bird.conf", RoutingFileTemplates["rs_bird"].format(
-                    routerId = rs_iface.getAddress()
+                    routerId=rs_iface.getAddress()
                 ))
-                
+
             if type == 'rnode':
                 rnode: Router = obj
                 if not issubclass(rnode.__class__, Router): rnode.__class__ = Router
@@ -126,10 +115,6 @@ class Routing(Layer):
                 rnode.appendStartCommand('ip li set dummy0 up')
                 rnode.appendStartCommand('ip addr add {}/32 dev dummy0'.format(lbaddr))
                 rnode.setLoopbackAddress(lbaddr)
-                #BA -----
-                rnode.appendStartCommand('routinator server --rtr 127.0.0.1:3323 --refresh=300 --detach &')
-                rnode.appendStartCommand('birdc configure')
-                ##
                 self.__loopback_pos += 1
 
                 self._log("Bootstraping bird.conf for AS{} Router {}...".format(scope, name))
@@ -147,23 +132,25 @@ class Routing(Layer):
                     if net.isDirect():
                         has_localnet = True
                         ifaces += RoutingFileTemplates["rnode_bird_direct_interface"].format(
-                            interfaceName = net.getName()
+                            interfaceName=net.getName()
                         )
 
                 rnode.setFile("/etc/bird/bird.conf", RoutingFileTemplates["rnode_bird"].format(
-                    routerId = rnode.getLoopbackAddress()
+                    routerId=rnode.getLoopbackAddress()
                 ))
 
                 rnode.appendStartCommand('[ ! -d /run/bird ] && mkdir /run/bird')
                 rnode.appendStartCommand('bird -d', True)
-                
-                if has_localnet: rnode.addProtocol('direct', 'local_nets', RoutingFileTemplates['rnode_bird_direct'].format(interfaces = ifaces))
-            
+
+                if has_localnet: rnode.addProtocol('direct', 'local_nets',
+                                                   RoutingFileTemplates['rnode_bird_direct'].format(interfaces=ifaces))
+
     def render(self, emulator: Emulator):
         reg = emulator.getRegistry()
         for ((scope, type, name), obj) in reg.getAll().items():
             if type == 'rs' or type == 'rnode':
-                assert issubclass(obj.__class__, Router), 'routing: render: adding new RS/Router after routing layer configured is not currently supported.'
+                assert issubclass(obj.__class__,
+                                  Router), 'routing: render: adding new RS/Router after routing layer configured is not currently supported.'
 
             if type == 'rnode':
                 rnode: Router = obj
@@ -186,11 +173,13 @@ class Routing(Layer):
                         if riface.getNet() == hnet:
                             rif = riface
                             break
-                
+
                 assert rif != None, 'Host {} in as{} in network {}: no router'.format(name, scope, hnet.getName())
-                self._log("Setting default route for host {} ({}) to router {}".format(name, hif.getAddress(), rif.getAddress()))
+                self._log("Setting default route for host {} ({}) to router {}".format(name, hif.getAddress(),
+                                                                                       rif.getAddress()))
                 hnode.appendStartCommand('ip rou del default 2> /dev/null')
-                hnode.appendStartCommand('ip route add default via {} dev {}'.format(rif.getAddress(), rif.getNet().getName()))
+                hnode.appendStartCommand(
+                    'ip route add default via {} dev {}'.format(rif.getAddress(), rif.getNet().getName()))
 
     def print(self, indent: int) -> str:
         out = ' ' * indent

@@ -50,35 +50,35 @@ EbgpFileTemplates["rnode_bird_peer_rpki"] = """
     }};
 """
 EbgpFileTemplates["rpki_protocol"] = """\
-
-#For rpki
+# For rpki
 roa4 table r4;
 roa6 table r6;
 
-protocol rpki {
+protocol rpki {{
 
-    roa4 { table r4;};
-    roa6 { table r6;};
+    roa4 {{ table r4;}};
+    roa6 {{ table r6;}};
 
-    remote "127.0.0.1" port 3323;
+    remote "{rpkiHostIp}" port 3323;
     retry keep 90;
     refresh keep 900;
     expire keep 172800;
-}
+}}
 
-filter peer_in_v4 {
+filter peer_in_v4 {{
     if (roa_check(r4, net, bgp_path.last) = ROA_INVALID) then
-    {
+    {{
         print "Ignore RPKI invalid ", net, " for ASN ", bgp_path.last;
         reject;
-    }
-    else {
+    }}
+    else {{
         #for debugging purposes only
         print "RPKI - passed roa_check", net, " for ASN ", bgp_path.last;
-        accept;
-    }
 
-}
+        accept;
+    }}
+
+}}
 """
 
 
@@ -144,7 +144,8 @@ class Ebgp(Layer, Graphable):
 
                 # BA
                 if "rpki" in node.getName():
-                    node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['rpki_protocol'])
+                    node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['rpki_protocol'].format(
+                        rpkiHostIp='10.{}.0.71'.format(node.getAsn())))
             # create table for bgp
             node.addTable('t_bgp')
 

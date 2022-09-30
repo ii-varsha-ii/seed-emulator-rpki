@@ -10,7 +10,7 @@ from ipaddress import IPv4Network, IPv4Address
 from shutil import copyfile
 import json
 
-SEEDEMU_CLIENT_IMAGE='handsonsecurity/seedemu-map'
+SEEDEMU_CLIENT_IMAGE = 'handsonsecurity/seedemu-map'
 
 DockerCompilerFileTemplates: Dict[str, str] = {}
 
@@ -198,6 +198,7 @@ DockerCompilerFileTemplates['local_image'] = """\
         image: {imageName}
 """
 
+
 class DockerImage(object):
     """!
     @brief The DockerImage class.
@@ -244,7 +245,7 @@ class DockerImage(object):
     def getSoftware(self) -> Set[str]:
         """!
         @brief get set of software installed on this image.
-        
+
         @return set.
         """
         return self.__software
@@ -256,7 +257,7 @@ class DockerImage(object):
         @return directory name.
         """
         return self.__dirName
-    
+
     def isLocal(self) -> bool:
         """!
         @brief returns True if this image is local.
@@ -265,9 +266,11 @@ class DockerImage(object):
         """
         return self.__local
 
+
 DefaultImages: List[DockerImage] = []
 
 DefaultImages.append(DockerImage('ubuntu:20.04', []))
+
 
 class Docker(Compiler):
     """!
@@ -295,14 +298,14 @@ class Docker(Compiler):
     _used_images: Set[str]
 
     def __init__(
-        self,
-        namingScheme: str = "as{asn}{role}-{displayName}-{primaryIp}",
-        selfManagedNetwork: bool = False,
-        dummyNetworksPool: str = '10.128.0.0/9',
-        dummyNetworksMask: int = 24,
-        clientEnabled: bool = False,
-        clientPort: int = 8080,
-        clientHideServiceNet: bool = True
+            self,
+            namingScheme: str = "as{asn}{role}-{displayName}-{primaryIp}",
+            selfManagedNetwork: bool = False,
+            dummyNetworksPool: str = '10.128.0.0/9',
+            dummyNetworksMask: int = 24,
+            clientEnabled: bool = False,
+            clientPort: int = 8080,
+            clientHideServiceNet: bool = True
     ):
         """!
         @brief Docker compiler constructor.
@@ -310,7 +313,7 @@ class Docker(Compiler):
         @param namingScheme (optional) node naming scheme. Avaliable variables
         are: {asn}, {role} (r - router, h - host, rs - route server), {name},
         {primaryIp} and {displayName}. {displayName} will automaically fall
-        back to {name} if 
+        back to {name} if
         Default to as{asn}{role}-{displayName}-{primaryIp}.
         @param selfManagedNetwork (optional) use self-managed network. Enable
         this to manage the network inside containers instead of using docker's
@@ -337,7 +340,7 @@ class Docker(Compiler):
         self.__services = ""
         self.__naming_scheme = namingScheme
         self.__self_managed_network = selfManagedNetwork
-        self.__dummy_network_pool = IPv4Network(dummyNetworksPool).subnets(new_prefix = dummyNetworksMask)
+        self.__dummy_network_pool = IPv4Network(dummyNetworksPool).subnets(new_prefix=dummyNetworksMask)
 
         self.__client_enabled = clientEnabled
         self.__client_port = clientPort
@@ -410,29 +413,29 @@ class Docker(Compiler):
         self.__disable_images = disabled
 
         return self
-    
-    def setImageOverride(self, node:Node, imageName:str) -> Docker:
+
+    def setImageOverride(self, node: Node, imageName: str) -> Docker:
         """!
         @brief set the docker compiler to use a image on the specified Node.
 
         @param node target node to override image.
         @param imageName name of the image to use.
 
-        @returns self, for chaining api calls.      
+        @returns self, for chaining api calls.
         """
         asn = node.getAsn()
         name = node.getName()
-        self.__image_per_node_list[(asn, name)]=imageName
+        self.__image_per_node_list[(asn, name)] = imageName
 
     def _groupSoftware(self, emulator: Emulator):
         """!
-        @brief Group apt-get install calls to maximize docker cache. 
+        @brief Group apt-get install calls to maximize docker cache.
 
         @param emulator emulator to load nodes from.
         """
 
         registry = emulator.getRegistry()
-        
+
         # { [imageName]: { [softName]: [nodeRef] } }
         softGroups: Dict[str, Dict[str, List[Node]]] = {}
 
@@ -440,7 +443,7 @@ class Docker(Compiler):
         groupIter: Dict[str, int] = {}
 
         for ((scope, type, name), obj) in registry.getAll().items():
-            if type != 'rnode' and type != 'hnode' and type != 'snode' and type != 'rs' and type != 'snode': 
+            if type != 'rnode' and type != 'hnode' and type != 'snode' and type != 'rs' and type != 'snode':
                 continue
 
             node: Node = obj
@@ -476,19 +479,19 @@ class Docker(Compiler):
                     if len(nodes) == commRequired:
                         currentTier.add(soft)
                         for node in nodes: currentTierNodes.add(node)
-                
+
                 for node in currentTierNodes:
                     if not node.hasAttribute('__soft_install_tiers'):
                         node.setAttribute('__soft_install_tiers', [])
 
                     node.getAttribute('__soft_install_tiers').append(currentTier)
-                
 
                 if len(currentTier) > 0:
-                    self._log('the following software has been grouped together in step {}: {} since they are referenced by {} nodes.'.format(step, currentTier, len(currentTierNodes)))
+                    self._log(
+                        'the following software has been grouped together in step {}: {} since they are referenced by {} nodes.'.format(
+                            step, currentTier, len(currentTierNodes)))
                     step += 1
-                
-    
+
     def _selectImageFor(self, node: Node) -> Tuple[DockerImage, Set[str]]:
         """!
         @brief select image for the given node.
@@ -503,7 +506,8 @@ class Docker(Compiler):
         if nodeKey in self.__image_per_node_list:
             image_name = self.__image_per_node_list[nodeKey]
 
-            assert image_name in self.__images, 'image-per-node configured, but image {} does not exist.'.format(image_name)
+            assert image_name in self.__images, 'image-per-node configured, but image {} does not exist.'.format(
+                image_name)
 
             (image, _) = self.__images[image_name]
 
@@ -516,14 +520,15 @@ class Docker(Compiler):
             return (image, nodeSoft - image.getSoftware())
 
         if self.__forced_image != None:
-            assert self.__forced_image in self.__images, 'forced-image configured, but image {} does not exist.'.format(self.__forced_image)
+            assert self.__forced_image in self.__images, 'forced-image configured, but image {} does not exist.'.format(
+                self.__forced_image)
 
             (image, _) = self.__images[self.__forced_image]
 
             self._log('force-image configured, using image: {}'.format(image.getName()))
 
             return (image, nodeSoft - image.getSoftware())
-        
+
         candidates: List[Tuple[DockerImage, int]] = []
         minMissing = len(nodeSoft)
 
@@ -534,7 +539,7 @@ class Docker(Compiler):
                 candidates = []
                 minMissing = missing
 
-            if missing <= minMissing: 
+            if missing <= minMissing:
                 candidates.append((image, prio))
 
         assert len(candidates) > 0, '_electImageFor ended w/ no images?'
@@ -547,8 +552,7 @@ class Docker(Compiler):
 
         return (selected, nodeSoft - selected.getSoftware())
 
-
-    def _getNetMeta(self, net: Network) -> str: 
+    def _getNetMeta(self, net: Network) -> str:
         """!
         @brief get net metadata lables.
 
@@ -563,40 +567,40 @@ class Docker(Compiler):
 
         if self.__client_hide_svcnet and scope == 'seedemu' and name == '000_svc':
             return DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'dummy',
-                value = 'dummy label for hidden node/net'
+                key='dummy',
+                value='dummy label for hidden node/net'
             )
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-            key = 'type',
-            value = 'global' if scope == 'ix' else 'local'
+            key='type',
+            value='global' if scope == 'ix' else 'local'
         )
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-            key = 'scope',
-            value = scope
+            key='scope',
+            value=scope
         )
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-            key = 'name',
-            value = name
+            key='name',
+            value=name
         )
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-            key = 'prefix',
-            value = net.getPrefix()
+            key='prefix',
+            value=net.getPrefix()
         )
 
         if net.getDisplayName() != None:
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'displayname',
-                value = net.getDisplayName()
+                key='displayname',
+                value=net.getDisplayName()
             )
-        
+
         if net.getDescription() != None:
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'description',
-                value = net.getDescription()
+                key='description',
+                value=net.getDescription()
             )
 
         return labels
@@ -614,74 +618,74 @@ class Docker(Compiler):
         labels = ''
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-            key = 'asn',
-            value = node.getAsn()
+            key='asn',
+            value=node.getAsn()
         )
 
         labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-            key = 'nodename',
-            value = name
+            key='nodename',
+            value=name
         )
 
         if type == 'hnode':
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'role',
-                value = 'Host'
+                key='role',
+                value='Host'
             )
 
         if type == 'rnode':
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'role',
-                value = 'Router'
+                key='role',
+                value='Router'
             )
 
         if type == 'snode':
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'role',
-                value = 'Emulator Service Worker'
+                key='role',
+                value='Emulator Service Worker'
             )
 
         if type == 'rs':
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'role',
-                value = 'Route Server'
+                key='role',
+                value='Route Server'
             )
 
         if node.getDisplayName() != None:
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'displayname',
-                value = node.getDisplayName()
+                key='displayname',
+                value=node.getDisplayName()
             )
-        
+
         if node.getDescription() != None:
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'description',
-                value = node.getDescription()
+                key='description',
+                value=node.getDescription()
             )
-        
+
         if len(node.getClasses()) > 0:
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'class',
-                value = json.dumps(node.getClasses()).replace("\"", "\\\"")
+                key='class',
+                value=json.dumps(node.getClasses()).replace("\"", "\\\"")
             )
 
         for key, value in node.getLabel().items():
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = key,
-                value = value
+                key=key,
+                value=value
             )
         n = 0
         for iface in node.getInterfaces():
             net = iface.getNet()
 
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'net.{}.name'.format(n),
-                value = net.getName()
+                key='net.{}.name'.format(n),
+                value=net.getName()
             )
 
             labels += DockerCompilerFileTemplates['compose_label_meta'].format(
-                key = 'net.{}.address'.format(n),
-                value = '{}/{}'.format(iface.getAddress(), net.getPrefix().prefixlen)
+                key='net.{}.address'.format(n),
+                value='{}/{}'.format(iface.getAddress(), net.getPrefix().prefixlen)
             )
 
             n += 1
@@ -725,7 +729,7 @@ class Docker(Compiler):
         staged_path = md5(path.encode('utf-8')).hexdigest()
         print(content, file=open(staged_path, 'w'))
         return 'COPY {} {}\n'.format(staged_path, path)
-    
+
     def _importFile(self, path: str, hostpath: str) -> str:
         """!
         @brief Stage file to local folder and return Dockerfile command.
@@ -758,7 +762,7 @@ class Docker(Compiler):
         for iface in node.getInterfaces():
             net = iface.getNet()
             (netscope, _, _) = net.getRegistryInfo()
-            net_prefix = self._contextToPrefix(netscope, 'net') 
+            net_prefix = self._contextToPrefix(netscope, 'net')
             if net.getType() == NetworkType.Bridge: net_prefix = ''
             real_netname = '{}{}'.format(net_prefix, net.getName())
             address = iface.getAddress()
@@ -776,7 +780,7 @@ class Docker(Compiler):
                 )
 
                 address = d_address
-                
+
                 self._log('using self-managed network: using dummy address {}/{} for {}/{} on as{}/{}'.format(
                     d_address, d_prefix.prefixlen, iface.getAddress(), iface.getNet().getPrefix().prefixlen,
                     node.getAsn(), node.getName()
@@ -785,30 +789,30 @@ class Docker(Compiler):
             if address == None:
                 address = ""
             else:
-                address = DockerCompilerFileTemplates['compose_service_network_address'].format(address = address)
+                address = DockerCompilerFileTemplates['compose_service_network_address'].format(address=address)
 
             node_nets += DockerCompilerFileTemplates['compose_service_network'].format(
-                netId = real_netname,
-                address = address
+                netId=real_netname,
+                address=address
             )
-        
+
         _ports = node.getPorts()
         ports = ''
         if len(_ports) > 0:
             lst = ''
             for (h, n, p) in _ports:
                 lst += DockerCompilerFileTemplates['compose_port'].format(
-                    hostPort = h,
-                    nodePort = n,
-                    proto = p
+                    hostPort=h,
+                    nodePort=n,
+                    proto=p
                 )
             ports = DockerCompilerFileTemplates['compose_ports'].format(
-                portList = lst
+                portList=lst
             )
-        
+
         _volumes = node.getSharedFolders()
         storages = node.getPersistentStorages()
-        
+
         volumes = ''
 
         if len(_volumes) > 0 or len(storages) > 0:
@@ -816,40 +820,40 @@ class Docker(Compiler):
 
             for (nodePath, hostPath) in _volumes.items():
                 lst += DockerCompilerFileTemplates['compose_volume'].format(
-                    hostPath = hostPath,
-                    nodePath = nodePath
+                    hostPath=hostPath,
+                    nodePath=nodePath
                 )
-            
+
             for path in storages:
                 lst += DockerCompilerFileTemplates['compose_storage'].format(
-                    nodePath = path
+                    nodePath=path
                 )
 
             volumes = DockerCompilerFileTemplates['compose_volumes'].format(
-                volumeList = lst
+                volumeList=lst
             )
 
         dockerfile = DockerCompilerFileTemplates['dockerfile']
         mkdir(real_nodename)
         chdir(real_nodename)
-        
+
         (image, soft) = self._selectImageFor(node)
 
         if not node.hasAttribute('__soft_install_tiers') and len(soft) > 0:
-            dockerfile += 'RUN apt-get update && apt-get install -y --no-install-recommends {}\n'.format(' '.join(sorted(soft)))
+            dockerfile += 'RUN apt-get update && apt-get install -y --no-install-recommends {}\n'.format(
+                ' '.join(sorted(soft)))
 
         if node.hasAttribute('__soft_install_tiers'):
             softLists: List[List[str]] = node.getAttribute('__soft_install_tiers')
             for softList in softLists:
-                dockerfile += 'RUN apt-get update && apt-get install -y --no-install-recommends {}\n'.format(' '.join(sorted(softList)))
+                dockerfile += 'RUN apt-get update && apt-get install -y --no-install-recommends {}\n'.format(
+                    ' '.join(sorted(softList)))
 
         dockerfile += 'RUN curl -L https://grml.org/zsh/zshrc > /root/.zshrc\n'
         dockerfile = 'FROM {}\n'.format(md5(image.getName().encode('utf-8')).hexdigest()) + dockerfile
         self._used_images.add(image.getName())
 
         for cmd in node.getBuildCommands(): dockerfile += 'RUN {}\n'.format(cmd)
-        #BA - to add ENV to docker file for rpki installtion
-        for cmd in node.getBuildCommandsENV(): dockerfile += 'ENV {}\n'.format(cmd)
 
         start_commands = ''
 
@@ -862,9 +866,8 @@ class Docker(Compiler):
 
         for (cmd, fork) in node.getStartCommands():
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
-       
-        #BA - for rpki installtion use -> real_nodename
 
+        # BA - for rpki installtion use -> real_nodename
         if 'host_rpki' in real_nodename:
 
             dockerfile += 'RUN apt-get update && apt-get upgrade -y\n'
@@ -879,16 +882,15 @@ class Docker(Compiler):
             dockerfile += 'RUN routinator -v vrps -o ROAs.csv\n'
 
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
-                startCommands = start_commands,
-                rtrServer= 'routinator server --rtr {ip}:3323 --refresh=300 --detach &\n'.format(
-                    ip = node.getInterfaces()[0].getAddress()),
-                birdConf = 'birdc configure')
-            )
+                startCommands=start_commands,
+                rtrServer='routinator server --rtr {ip}:3323 --refresh=300 --detach &\n'.format(
+                    ip=node.getInterfaces()[0].getAddress()),
+                birdConf='birdc configure')
+                                        )
         else:
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
-                startCommands=start_commands, rtrServer = 'echo', birdConf = 'birdc configure')
-            )
-
+                startCommands=start_commands, rtrServer='echo', birdConf='birdc configure')
+                                        )
 
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
@@ -904,33 +906,30 @@ class Docker(Compiler):
         for (cpath, hpath) in node.getImportedFiles().items():
             dockerfile += self._importFile(cpath, hpath)
 
-        
-        
         dockerfile += 'CMD ["/start.sh"]\n'
         print(dockerfile, file=open('Dockerfile', 'w'))
-        
+
         chdir('..')
 
         name = self.__naming_scheme.format(
-            asn = node.getAsn(),
-            role = self._nodeRoleToString(node.getRole()),
-            name = node.getName(),
-            displayName = node.getDisplayName() if node.getDisplayName() != None else node.getName(),
-            primaryIp = node.getInterfaces()[0].getAddress()
-        )
-       
-        name = sub(r'[^a-zA-Z0-9_.-]', '_', name)
-        
-        return DockerCompilerFileTemplates['compose_service'].format(
-            nodeId = real_nodename,
-            nodeName = name,
-            networks = node_nets,
-            # privileged = 'true' if node.isPrivileged() else 'false',
-            ports = ports,
-            labelList = self._getNodeMeta(node),
-            volumes = volumes
+            asn=node.getAsn(),
+            role=self._nodeRoleToString(node.getRole()),
+            name=node.getName(),
+            displayName=node.getDisplayName() if node.getDisplayName() != None else node.getName(),
+            primaryIp=node.getInterfaces()[0].getAddress()
         )
 
+        name = sub(r'[^a-zA-Z0-9_.-]', '_', name)
+
+        return DockerCompilerFileTemplates['compose_service'].format(
+            nodeId=real_nodename,
+            nodeName=name,
+            networks=node_nets,
+            # privileged = 'true' if node.isPrivileged() else 'false',
+            ports=ports,
+            labelList=self._getNodeMeta(node),
+            volumes=volumes
+        )
 
     def _compileNet(self, net: Network) -> str:
         """!
@@ -951,16 +950,17 @@ class Docker(Compiler):
         if net.getType() == NetworkType.Bridge: net_prefix = ''
 
         return DockerCompilerFileTemplates['compose_network'].format(
-            netId = '{}{}'.format(net_prefix, net.getName()),
-            prefix = net.getAttribute('dummy_prefix') if self.__self_managed_network and net.getType() != NetworkType.Bridge else net.getPrefix(),
-            mtu = net.getMtu(),
-            labelList = self._getNetMeta(net)
+            netId='{}{}'.format(net_prefix, net.getName()),
+            prefix=net.getAttribute(
+                'dummy_prefix') if self.__self_managed_network and net.getType() != NetworkType.Bridge else net.getPrefix(),
+            mtu=net.getMtu(),
+            labelList=self._getNetMeta(net)
         )
 
     def _makeDummies(self) -> str:
         """!
         @brief create dummy services to get around docker pull limits.
-        
+
         @returns docker-compose service string.
         """
         mkdir('dummies')
@@ -972,9 +972,9 @@ class Docker(Compiler):
             self._log('adding dummy service for image {}...'.format(image))
 
             imageDigest = md5(image.encode('utf-8')).hexdigest()
-            
+
             dummies += DockerCompilerFileTemplates['compose_dummy'].format(
-                imageDigest = imageDigest
+                imageDigest=imageDigest
             )
 
             dockerfile = 'FROM {}\n'.format(image)
@@ -1016,8 +1016,8 @@ class Docker(Compiler):
             self._log('enabling seedemu-client...')
 
             self.__services += DockerCompilerFileTemplates['seedemu_client'].format(
-                clientImage = SEEDEMU_CLIENT_IMAGE,
-                clientPort = self.__client_port
+                clientImage=SEEDEMU_CLIENT_IMAGE,
+                clientPort=self.__client_port
             )
 
         local_images = ''
@@ -1025,13 +1025,13 @@ class Docker(Compiler):
         for (image, _) in self.__images.values():
             if image.getName() not in self._used_images or not image.isLocal(): continue
             local_images += DockerCompilerFileTemplates['local_image'].format(
-                imageName = image.getName(),
-                dirName = image.getDirName()
+                imageName=image.getName(),
+                dirName=image.getDirName()
             )
 
         self._log('creating docker-compose.yml...'.format(scope, name))
         print(DockerCompilerFileTemplates['compose'].format(
-            services = self.__services,
-            networks = self.__networks,
-            dummies = local_images + self._makeDummies()
+            services=self.__services,
+            networks=self.__networks,
+            dummies=local_images + self._makeDummies()
         ), file=open('docker-compose.yml', 'w'))

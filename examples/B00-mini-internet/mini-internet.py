@@ -66,30 +66,31 @@ Makers.makeTransitAs(base, 12, [101, 104], [(101, 104)])
 
 ###############################################################################
 # Create single-homed stub ASes. "None" means create a host only 
+# The /layers/EBgp.py check if the router hase rpki in the name to apply the rpki bird configuration
+Makers.makeStubAs(emu, base, 150, 100, [None])
+Makers.makeStubAs(emu, base, 151, 100, [None])
 
-Makers.makeStubAs(emu, base, 150, 100, [web, None])
-Makers.makeStubAs(emu, base, 151, 100, [web, None])
+Makers.makeStubAs(emu, base, 152, 101, [None])
+Makers.makeStubAs(emu, base, 153, 101, [None])
 
-Makers.makeStubAs(emu, base, 152, 101, [None, None])
-Makers.makeStubAs(emu, base, 153, 101, [web, None, None])
+Makers.makeStubAs(emu, base, 154, 102, [None])
 
-Makers.makeStubAs(emu, base, 154, 102, [None, web])
+Makers.makeStubAs(emu, base, 155, 103, [None, None])
+Makers.makeStubAs(emu, base, 156, 103, [None])
+Makers.makeStubAs(emu, base, 157, 103, [None, None])
 
-Makers.makeStubAs(emu, base, 160, 103, [web, None])
-Makers.makeStubAs(emu, base, 161, 103, [web, None])
-Makers.makeStubAs(emu, base, 162, 103, [web, None])
+Makers.makeStubAs(emu, base, 158, 104, [None, None])
+Makers.makeStubAs(emu, base, 159, 104, [None])
 
-Makers.makeStubAs(emu, base, 163, 104, [web, None])
-Makers.makeStubAs(emu, base, 164, 104, [None, None])
-
-Makers.makeStubAs(emu, base, 170, 105, [web, None])
-Makers.makeStubAs(emu, base, 171, 105, [None])
+Makers.makeStubAs(emu, base, 160, 105, [None])
+Makers.makeStubAs(emu, base, 161, 105, [None, None])
 
 
-# Add a host with customized IP address to AS-154 
-as154 = base.getAutonomousSystem(154)
-as154.createHost('host_2').joinNetwork('net0', address = '10.154.0.129')
-
+#BA - Adding RPKI, host to each StubAS
+for x in range(150, 161):
+       asn = base.getAutonomousSystem(x)
+       host_addr = '10.{}.0.71'.format(x)
+       asn.createHost('host_rpki').joinNetwork('net0', address = host_addr)
 
 # Create real-world AS.
 # AS11872 is the Syracuse University's autonomous system
@@ -103,18 +104,18 @@ as152.getNetwork('net0').enableRemoteAccess(ovpn)
 
 
 ###############################################################################
-# Peering via RS (route server). The default peering mode for RS is PeerRelationship.Peer, 
-# which means each AS will only export its customers and their own prefixes. 
+# Peering via RS (route server). The default peering mode for RS is PeerRelationship.Peer,
+# which means each AS will only export its customers and their own prefixes.
 # We will use this peering relationship to peer all the ASes in an IX.
-# None of them will provide transit service for others. 
+# None of them will provide transit service for others.
 
 ebgp.addRsPeers(100, [2, 3, 4])
 ebgp.addRsPeers(102, [2, 4])
 ebgp.addRsPeers(104, [3, 4])
 ebgp.addRsPeers(105, [2, 3])
 
-# To buy transit services from another autonomous system, 
-# we will use private peering  
+# To buy transit services from another autonomous system,
+# we will use private peering
 
 ebgp.addPrivatePeerings(100, [2],  [150, 151], PeerRelationship.Provider)
 ebgp.addPrivatePeerings(100, [3],  [150], PeerRelationship.Provider)
@@ -125,14 +126,14 @@ ebgp.addPrivatePeerings(101, [12], [152, 153], PeerRelationship.Provider)
 ebgp.addPrivatePeerings(102, [2, 4],  [11, 154], PeerRelationship.Provider)
 ebgp.addPrivatePeerings(102, [11], [154, 11872], PeerRelationship.Provider)
 
-ebgp.addPrivatePeerings(103, [3],  [160, 161, 162], PeerRelationship.Provider)
+ebgp.addPrivatePeerings(103, [3],  [155, 156, 157], PeerRelationship.Provider)
 
 ebgp.addPrivatePeerings(104, [3, 4], [12], PeerRelationship.Provider)
-ebgp.addPrivatePeerings(104, [4],  [163], PeerRelationship.Provider)
-ebgp.addPrivatePeerings(104, [12], [164], PeerRelationship.Provider)
+ebgp.addPrivatePeerings(104, [4],  [158], PeerRelationship.Provider)
+ebgp.addPrivatePeerings(104, [12], [159], PeerRelationship.Provider)
 
-ebgp.addPrivatePeerings(105, [3],  [11, 170], PeerRelationship.Provider)
-ebgp.addPrivatePeerings(105, [11], [171], PeerRelationship.Provider)
+ebgp.addPrivatePeerings(105, [3],  [11, 160], PeerRelationship.Provider)
+ebgp.addPrivatePeerings(105, [11], [161], PeerRelationship.Provider)
 
 
 ###############################################################################
