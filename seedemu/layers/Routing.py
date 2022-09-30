@@ -80,6 +80,19 @@ class Routing(Layer):
         node.addBuildCommand('mkdir -p /usr/share/doc/bird2/examples/')
         node.addBuildCommand('touch /usr/share/doc/bird2/examples/bird.conf')
         node.addBuildCommand('apt-get update && apt-get install -y --no-install-recommends bird2')
+        #BA ---
+        #needs to an if statment to make some router have rpki and other not
+        node.addBuildCommand("apt-get update && apt-get upgrade -y")
+        node.addBuildCommand("apt install rsync grsync -y")
+        node.addBuildCommand("apt install build-essential -y")
+        node.addBuildCommand("apt-get install manpages-dev")
+        node.addBuildCommand("curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
+        node.addBuildCommand(". $HOME/.cargo/env")
+        node.addBuildCommandENV('PATH="/root/.cargo/bin:${PATH}"')
+        node.addBuildCommand("cargo install -f routinator")
+        node.addBuildCommand("routinator init --accept-arin-rpa")
+        node.addBuildCommand("routinator -v vrps -o ROAs.csv")
+
 
     def configure(self, emulator: Emulator):
         reg = emulator.getRegistry()
@@ -113,6 +126,10 @@ class Routing(Layer):
                 rnode.appendStartCommand('ip li set dummy0 up')
                 rnode.appendStartCommand('ip addr add {}/32 dev dummy0'.format(lbaddr))
                 rnode.setLoopbackAddress(lbaddr)
+                #BA -----
+                rnode.appendStartCommand('routinator server --rtr 127.0.0.1:3323 --refresh=300 --detach &')
+                rnode.appendStartCommand('birdc configure')
+                ##
                 self.__loopback_pos += 1
 
                 self._log("Bootstraping bird.conf for AS{} Router {}...".format(scope, name))

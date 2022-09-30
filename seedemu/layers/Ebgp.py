@@ -38,7 +38,7 @@ EbgpFileTemplates["rnode_bird_peer"] = """
     local {localAddress} as {localAsn};
     neighbor {peerAddress} as {peerAsn};
 """
-#BA
+# BA
 EbgpFileTemplates["rnode_bird_peer_rpki"] = """
     debug all;
     local {localAddress} as {localAsn};
@@ -49,38 +49,38 @@ EbgpFileTemplates["rnode_bird_peer_rpki"] = """
        export all;
     }};
 """
-
 EbgpFileTemplates["rpki_protocol"] = """\
-#for rpki
+
+#For rpki
 roa4 table r4;
 roa6 table r6;
 
-protocol rpki {{
+protocol rpki {
 
-    roa4 {{ table r4;}};
-    roa6 {{ table r6;}};
+    roa4 { table r4;};
+    roa6 { table r6;};
 
-    remote "{rpkiHostIp}" port 3323;
+    remote "127.0.0.1" port 3323;
     retry keep 90;
     refresh keep 900;
     expire keep 172800;
-}}
+}
 
-filter peer_in_v4 {{
+filter peer_in_v4 {
     if (roa_check(r4, net, bgp_path.last) = ROA_INVALID) then
-    {{
+    {
         print "Ignore RPKI invalid ", net, " for ASN ", bgp_path.last;
         reject;
-    }}
-    else {{
+    }
+    else {
         #for debugging purposes only
         print "RPKI - passed roa_check", net, " for ASN ", bgp_path.last;
-
         accept;
-    }}
+    }
 
-}}
+}
 """
+
 
 class PeerRelationship(Enum):
     """!
@@ -141,10 +141,10 @@ class Ebgp(Layer, Graphable):
 
                 node.setAttribute('__bgp_bootstrapped', True)
                 node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['bgp_commons'].format(localAsn=node.getAsn()))
-                print('here', node.getAsn(), node.getName())
-                #BA
-                node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['rpki_protocol'].format(
-                    rpkiHostIp='10.{}.0.71'.format(node.getAsn())))
+
+                # BA
+                if "rpki" in node.getName():
+                    node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['rpki_protocol'])
             # create table for bgp
             node.addTable('t_bgp')
 
@@ -157,7 +157,7 @@ class Ebgp(Layer, Graphable):
 
         assert routerA != None, 'both nodes are RS node. cannot setup peering.'
         assert routerA != routerB, 'cannot peer with oneself.'
-        #BA
+
         if rsNode != None:
             rsNode.addProtocol('bgp', 'p_as{}'.format(routerA.getAsn()), EbgpFileTemplates["rs_bird_peer"].format(
                 localAddress=addrA,
@@ -165,46 +165,88 @@ class Ebgp(Layer, Graphable):
                 peerAddress=addrB,
                 peerAsn=routerA.getAsn()
             ))
-
-            routerA.addProtocol('bgp', 'p_rs{}'.format(rsNode.getAsn()), EbgpFileTemplates["rnode_bird_peer_rpki"].format(
-                localAddress=addrB,
-                localAsn=routerA.getAsn(),
-                peerAddress=addrA,
-                peerAsn=rsNode.getAsn()
-            ))
-
+            if "rpki" in routerA.getName():
+                routerA.addProtocol('bgp', 'p_rs{}'.format(rsNode.getAsn()),
+                    EbgpFileTemplates["rnode_bird_peer_rpki"].format(
+                        localAddress=addrB,
+                        localAsn=routerA.getAsn(),
+                        peerAddress=addrA,
+                        peerAsn=rsNode.getAsn()
+                    ))
+            else:
+                routerA.addProtocol('bgp', 'p_rs{}'.format(rsNode.getAsn()),
+                    EbgpFileTemplates["rnode_bird_peer"].format(
+                        localAddress=addrB,
+                        localAsn=routerA.getAsn(),
+                        peerAddress=addrA,
+                        peerAsn=rsNode.getAsn(),
+                        exportFilter="where bgp_large_community ~ [LOCAL_COMM, CUSTOMER_COMM]",
+                        importCommunity="PEER_COMM",
+                        bgpPref=20
+                    ))
             return
 
         if rel == PeerRelationship.Peer:
-            routerA.addProtocol('bgp', 'p_as{}'.format(routerB.getAsn()), EbgpFileTemplates["rnode_bird_peer_rpki"].format(
+            routerA.addProtocol('bgp', 'p_as{}'.format(routerB.getAsn()), EbgpFileTemplates["rnode_bird_peer"].format(
                 localAddress=addrA,
                 localAsn=routerA.getAsn(),
                 peerAddress=addrB,
-                peerAsn=routerB.getAsn()
+                peerAsn=routerB.getAsn(),
+                exportFilter="where bgp_large_community ~ [LOCAL_COMM, CUSTOMER_COMM]",
+                importCommunity="PEER_COMM",
+                bgpPref=20
             ))
 
-            routerB.addProtocol('bgp', 'p_as{}'.format(routerA.getAsn()), EbgpFileTemplates["rnode_bird_peer_rpki"].format(
+            routerB.addProtocol('bgp', 'p_as{}'.format(routerA.getAsn()), EbgpFileTemplates["rnode_bird_peer"].format(
                 localAddress=addrB,
                 localAsn=routerB.getAsn(),
                 peerAddress=addrA,
-                peerAsn=routerA.getAsn()
+                peerAsn=routerA.getAsn(),
+                exportFilter="where bgp_large_community ~ [LOCAL_COMM, CUSTOMER_COMM]",
+                importCommunity="PEER_COMM",
+                bgpPref=20
             ))
 
         if rel == PeerRelationship.Provider:
-            routerA.addProtocol('bgp', 'c_as{}'.format(routerB.getAsn()), EbgpFileTemplates["rnode_bird_peer_rpki"].format(
-                localAddress=addrA,
-                localAsn=routerA.getAsn(),
-                peerAddress=addrB,
-                peerAsn=routerB.getAsn()
-            ))
-
-            routerB.addProtocol('bgp', 'u_as{}'.format(routerA.getAsn()), EbgpFileTemplates["rnode_bird_peer_rpki"].format(
-                localAddress=addrB,
-                localAsn=routerB.getAsn(),
-                peerAddress=addrA,
-                peerAsn=routerA.getAsn()
-            ))
-
+            if "rpki" in routerA.getName():
+                routerA.addProtocol('bgp', 'c_as{}'.format(routerB.getAsn()),
+                    EbgpFileTemplates["rnode_bird_peer_rpki"].format(
+                        localAddress=addrA,
+                        localAsn=routerA.getAsn(),
+                        peerAddress=addrB,
+                        peerAsn=routerB.getAsn()
+                    ))
+            else:
+                routerA.addProtocol('bgp', 'c_as{}'.format(routerB.getAsn()),
+                    EbgpFileTemplates["rnode_bird_peer"].format(
+                        localAddress=addrA,
+                        localAsn=routerA.getAsn(),
+                        peerAddress=addrB,
+                        peerAsn=routerB.getAsn(),
+                        exportFilter="all",
+                        importCommunity="CUSTOMER_COMM",
+                        bgpPref=30
+                    ))
+            if "rpki" in routerB.getName():
+                routerB.addProtocol('bgp', 'u_as{}'.format(routerA.getAsn()),
+                    EbgpFileTemplates["rnode_bird_peer_rpki"].format(
+                        localAddress=addrB,
+                        localAsn=routerB.getAsn(),
+                        peerAddress=addrA,
+                        peerAsn=routerA.getAsn()
+                    ))
+            else:
+                routerB.addProtocol('bgp', 'u_as{}'.format(routerA.getAsn()),
+                    EbgpFileTemplates["rnode_bird_peer"].format(
+                        localAddress=addrB,
+                        localAsn=routerB.getAsn(),
+                        peerAddress=addrA,
+                        peerAsn=routerA.getAsn(),
+                        exportFilter="where bgp_large_community ~ [LOCAL_COMM, CUSTOMER_COMM]",
+                        importCommunity="PROVIDER_COMM",
+                        bgpPref=10
+                    ))
+        # BA - did not modifed this realstionship configuration for now - since it is not used in the B00-mini-internet/mini-internet.py
         if rel == PeerRelationship.Unfiltered:
             routerA.addProtocol('bgp', 'x_as{}'.format(routerB.getAsn()), EbgpFileTemplates["rnode_bird_peer"].format(
                 localAddress=addrA,
@@ -562,4 +604,3 @@ class Ebgp(Layer, Graphable):
             out += 'IX{}: AS{} <--({})--> AS{}\n'.format(i, a, rel, b)
 
         return out
-

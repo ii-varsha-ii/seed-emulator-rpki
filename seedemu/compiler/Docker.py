@@ -848,6 +848,8 @@ class Docker(Compiler):
         self._used_images.add(image.getName())
 
         for cmd in node.getBuildCommands(): dockerfile += 'RUN {}\n'.format(cmd)
+        #BA - to add ENV to docker file for rpki installtion
+        for cmd in node.getBuildCommandsENV(): dockerfile += 'ENV {}\n'.format(cmd)
 
         start_commands = ''
 
@@ -862,6 +864,7 @@ class Docker(Compiler):
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
        
         #BA - for rpki installtion use -> real_nodename
+
         if 'host_rpki' in real_nodename:
 
             dockerfile += 'RUN apt-get update && apt-get upgrade -y\n'
