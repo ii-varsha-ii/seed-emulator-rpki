@@ -1,24 +1,21 @@
-# RPKI updates 09/02:
+# RPKI updates 09/30:
 
 ### To deploy RPKI:
-- You need to specify one host for RPKI within an AS. The hostname must include `rpki` in the naming. A custom IP is needed in this form `10.asn.0.71`.  
+- I modifed the /exmaples/B00-mini-internet/mini-internet.py
+- In this example only the StubASes implment RPKI.
 
-- Here is an example:
-```
-as150.createHost('host_rpki').joinNetwork('net0', address = '10.150.0.71')
-```
-- A03-real-world is an edited ready-to-run example.
-- By doing the above, the RPKI validator should be installed and the RTR port listening on port `3323`.
+### Notes:
+- The RPKI validator should be installed and the RTR port listening on port `3323`.
 - You can check the status of the rpki using this command in birdc: 'show protocol all rpki'
 - You can check `/var/log/bird.log` for debugging.
 - This modification implements the best case scenario, where all ASs has a rpki validator implemented. You can reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
 
 ### The changes done on the .py files are:
 
-- The connection to the real internet - `/seedemu/core/Node.py` line `1037 and 1045`.
-- The validator installation and RTR server setup - `/seedemu/compiler/Docker.py` line `25-26`, and `865-887`.
-- Bird configuration - `/seedemu/layers/Ebgp.py` line `41-82`, `146`, and `161-206`. 
-- If there is an issue, it's more likely due to bird misconfiguration.
+- The connection to the real internet - `/seedemu/core/Node.py` line `1035 and 1044`.
+- The validator installation and RTR server setup - `/seedemu/compiler/Docker.py` line `25-26`,and `870-893`.
+- Bird configuration - `/seedemu/layers/Ebgp.py` line `41-82`, ,'145-148', and '169-251'. 
+- Changed on line in /seedemu/utilities/Makers.py line 102, to implent the rpki configuration on the routers that has rpki host.
 
 ### To test RPKI - you can use the following to hijack a prefix.
 ```
@@ -31,8 +28,7 @@ protocol static hijacks {
 }
 ```
 
-### Next Step:
-- [krill](https://krill.docs.nlnetlabs.nl/en/stable/testbed.html) implementation: to create a local Trust Anchor Locator (TAL).
+I usually add "# BA" when adding or changing any code for referance. Let me know if something does not make sense (becuase there is a lot =D). My aim is to make less changes to the main files and make one python file to deploy RPKI, but need to figure out the space issue.  
 
 --------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------
