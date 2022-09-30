@@ -6,7 +6,7 @@
 
 ### Notes:
 - The RPKI validator should be installed and the RTR port listening on port `3323`.
-- You can check the status of the rpki using this command in birdc: 'show protocol all rpki'
+- You can check the status of the rpki using this command in birdc: 'show protocol all rpki1'
 - You can check `/var/log/bird.log` for debugging.
 - This modification implements the best case scenario, where all ASs has a rpki validator implemented. You can reconfigure the router `/etc/bird/bird.conf` to route without using RPKI.
 
