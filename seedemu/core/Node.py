@@ -682,21 +682,6 @@ class Node(Printable, Registrable, Configurable, Vertex):
         self.__build_commands.append(cmd)
 
         return self
-    #BA --- to add ENV to docker file - needed for rpki installtion
-    def addBuildCommandENV(self, cmd: str) -> Node:
-        """!
-        @brief Add new command to build step.
-
-        Use this to add build steps to the node. For example, if using the
-        "docker" compiler, this will be added as a "ENV" line in Dockerfile.
-
-        @param cmd command to add.
-
-        @returns self, for chaining API calls.
-        """
-        self.__build_commands.append(cmd)
-
-        return self
     def getBuildCommands(self) -> List[str]:
         """!
         @brief Get build commands.

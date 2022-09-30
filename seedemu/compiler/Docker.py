@@ -18,7 +18,7 @@ DockerCompilerFileTemplates['dockerfile'] = """\
 ARG DEBIAN_FRONTEND=noninteractive
 RUN echo 'exec zsh' > /root/.bashrc
 """
-
+#BA
 DockerCompilerFileTemplates['start_script'] = """\
 #!/bin/bash
 {startCommands}
@@ -867,7 +867,7 @@ class Docker(Compiler):
         for (cmd, fork) in node.getStartCommands():
             start_commands += '{}{}\n'.format(cmd, ' &' if fork else '')
 
-        # BA - for rpki installtion use -> real_nodename
+        #BA - for rpki installtion use -> real_nodename
         if 'host_rpki' in real_nodename:
 
             dockerfile += 'RUN apt-get update && apt-get upgrade -y\n'

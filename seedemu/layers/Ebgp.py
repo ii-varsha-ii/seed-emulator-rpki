@@ -38,7 +38,7 @@ EbgpFileTemplates["rnode_bird_peer"] = """
     local {localAddress} as {localAsn};
     neighbor {peerAddress} as {peerAsn};
 """
-# BA
+#BA
 EbgpFileTemplates["rnode_bird_peer_rpki"] = """
     debug all;
     local {localAddress} as {localAsn};
@@ -142,7 +142,7 @@ class Ebgp(Layer, Graphable):
                 node.setAttribute('__bgp_bootstrapped', True)
                 node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['bgp_commons'].format(localAsn=node.getAsn()))
 
-                # BA
+                #BA
                 if "rpki" in node.getName():
                     node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['rpki_protocol'].format(
                         rpkiHostIp='10.{}.0.71'.format(node.getAsn())))
@@ -166,6 +166,7 @@ class Ebgp(Layer, Graphable):
                 peerAddress=addrB,
                 peerAsn=routerA.getAsn()
             ))
+            #BA
             if "rpki" in routerA.getName():
                 routerA.addProtocol('bgp', 'p_rs{}'.format(rsNode.getAsn()),
                     EbgpFileTemplates["rnode_bird_peer_rpki"].format(
@@ -247,7 +248,7 @@ class Ebgp(Layer, Graphable):
                         importCommunity="PROVIDER_COMM",
                         bgpPref=10
                     ))
-        # BA - did not modifed this realstionship configuration for now - since it is not used in the B00-mini-internet/mini-internet.py
+        #BA - did not modifed this realstionship configuration for now - since it is not used in the B00-mini-internet/mini-internet.py
         if rel == PeerRelationship.Unfiltered:
             routerA.addProtocol('bgp', 'x_as{}'.format(routerB.getAsn()), EbgpFileTemplates["rnode_bird_peer"].format(
                 localAddress=addrA,

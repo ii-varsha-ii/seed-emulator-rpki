@@ -98,7 +98,7 @@ def makeStubAs(emu: Emulator, base: Base, asn: int, exchange: int,
 
     # Create a BGP router 
     # Attach the router to both the internal and external networks
-    # BA
+    #BA
     router = stub_as.createRouter('router0_rpki')
     router.joinNetwork('net0')
     router.joinNetwork('ix{}'.format(exchange))
