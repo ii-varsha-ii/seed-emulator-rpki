@@ -89,7 +89,7 @@ Makers.makeStubAs(emu, base, 161, 105, [None, None])
 #BA - Adding RPKI, host to each StubAS
 for x in range(150, 161):
        asn = base.getAutonomousSystem(x)
-       host_addr = '10.{}.0.71'.format(x)
+       host_addr = '10.{}.0.74'.format(x)
        asn.createHost('host_rpki').joinNetwork('net0', address = host_addr)
 
 # Create real-world AS.

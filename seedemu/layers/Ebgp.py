@@ -145,7 +145,7 @@ class Ebgp(Layer, Graphable):
                 #BA
                 if "rpki" in node.getName():
                     node.appendFile('/etc/bird/bird.conf', EbgpFileTemplates['rpki_protocol'].format(
-                        rpkiHostIp='10.{}.0.71'.format(node.getAsn())))
+                        rpkiHostIp='10.{}.0.74'.format(node.getAsn())))
             # create table for bgp
             node.addTable('t_bgp')
 
