@@ -2,7 +2,7 @@
 
 ### To deploy RPKI:
 - I modifed the /exmaples/B00-mini-internet/mini-internet.py
-- In this example only the StubASes implment RPKI.
+- In this example only the StubASes implement RPKI.
 
 ### Notes:
 - The RPKI validator should be installed and the RTR port listening on port `3323`.
