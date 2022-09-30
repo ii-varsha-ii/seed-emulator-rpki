@@ -23,7 +23,6 @@ DockerCompilerFileTemplates['start_script'] = """\
 #!/bin/bash
 {startCommands}
 {rtrServer}
-{birdConf}
 echo "ready! run 'docker exec -it $HOSTNAME /bin/zsh' to attach to this node" >&2
 for f in /proc/sys/net/ipv4/conf/*/rp_filter; do echo 0 > "$f"; done
 tail -f /dev/null
@@ -884,13 +883,10 @@ class Docker(Compiler):
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
                 startCommands=start_commands,
                 rtrServer='routinator server --rtr {ip}:3323 --refresh=300 --detach &\n'.format(
-                    ip=node.getInterfaces()[0].getAddress()),
-                birdConf='birdc configure')
-                                        )
+                    ip=node.getInterfaces()[0].getAddress())))
         else:
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
-                startCommands=start_commands, rtrServer='echo', birdConf='birdc configure')
-                                        )
+                startCommands=start_commands, rtrServer='echo'))
 
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
