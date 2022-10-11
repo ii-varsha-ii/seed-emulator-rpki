@@ -32,11 +32,6 @@ ospf    = Ospf()
 web     = WebService()
 ovpn    = OpenVpnRemoteAccessProvider()
 
-# 5 Internet exchange -> 100-105
-# 12 Stub AS -> 106-117
-# Total of 17
-
-
 ###############################################################################
 ix100 = base.createInternetExchange(100)
 ix101 = base.createInternetExchange(101)
@@ -53,7 +48,10 @@ ix103.getPeeringLan().setDisplayName('Miami-103')
 ix104.getPeeringLan().setDisplayName('Boston-104')
 ix105.getPeeringLan().setDisplayName('Huston-105')
 
-#################
+###############################################################################
+# 5 Internet exchange -> 100-105
+# 12 Stub AS -> 106-117
+# Total of 17
 total_ASes = 17
 dep_percentage = round((total_ASes * FLAGS.d) / 100)
 rpki_ASes = random.sample(range(100,118), dep_percentage)
