@@ -102,16 +102,6 @@ Makers.makeStubAs(emu, base, 115, 104, [None], rpki[15])
 Makers.makeStubAs(emu, base, 116, 105, [None], rpki[16])
 Makers.makeStubAs(emu, base, 117, 105, [None], rpki[17])
 
-#in the makers file make an if stament that check is there is host called rpki it will creat a router that has the same name :)
-
-#BA - Adding RPKI, host to each StubAS - moved to maker
-'''
-for x in range(106, 118):
-       #if between 100-106 - we need to create a NET then creeat an rpki host other just create a host no need to creat a net
-       asn = base.getAutonomousSystem(x)
-       host_addr = '10.{}.0.74'.format(x)
-       asn.createHost('host_rpki').joinNetwork('net0', address = host_addr)
-'''
 # Create real-world AS.
 # AS11872 is the Syracuse University's autonomous system
 
