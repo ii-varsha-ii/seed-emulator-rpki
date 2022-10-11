@@ -80,7 +80,7 @@ def createHostsOnNetwork(emu: Emulator, the_as: AutonomousSystem, network: str,
         counter += 1
 
 def makeStubAs(emu: Emulator, base: Base, asn: int, exchange: int,
-    services: List[Service]):
+    services: List[Service], rpki: bool):
     """!
     @brief create a new stub AS.
 
@@ -99,7 +99,12 @@ def makeStubAs(emu: Emulator, base: Base, asn: int, exchange: int,
     # Create a BGP router 
     # Attach the router to both the internal and external networks
     #BA
-    router = stub_as.createRouter('router0_rpki')
+    if rpki is True:
+        router = stub_as.createRouter('router0_rpki')
+        host_addr = '10.{}.0.74'.format(asn)
+        stub_as.createHost('host_rpki').joinNetwork('net0', address=host_addr)
+    else:
+        router = stub_as.createRouter('router0')
     router.joinNetwork('net0')
     router.joinNetwork('ix{}'.format(exchange))
 
