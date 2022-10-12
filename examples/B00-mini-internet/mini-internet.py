@@ -15,7 +15,6 @@ import argparse
 import random
 
 
-
 # Process command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', type=int, required=True,
