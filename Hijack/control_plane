@@ -21,4 +21,4 @@ done
 
 echo "#Routers that have the hijacked route in its RIB: $hijacked_route"
 echo "#Routers that do not have the hijacked route in its RIB: $no_hijacked_route"
-echo "#ASNs deployed RPKI: $(echo ${#RPKI[*]})"
+echo "#ASs deployed RPKI: $(echo ${#RPKI[*]})"
