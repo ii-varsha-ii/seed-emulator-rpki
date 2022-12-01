@@ -1,4 +1,8 @@
 #!/bin/bash
+
+# To run This hijack provide the Prefix as command arguments 
+# ex: ./Random_Hijack 74.80.186.0/25 74.80.186.128/25
+
 random_con_ID=$(docker ps -f "name=router" -q | shuf -n 1)
 
 hij_c="echo -e 'protocol static hijacks {\n    ipv4 {\n        table t_bgp;\n    };
@@ -22,7 +26,7 @@ echo "Hijacker IP: ${AS_info[2]}"
 echo "Hijacked Prefix: $1 - $2"
 echo "AS Router Container ID: $random_con_ID"
 
-docker exec $random_con_ID /bin/bash -c "ip addr add $1"
+# docker exec $random_con_ID /bin/bash -c "ip addr add $1"
 docker exec --workdir /etc/bird $random_con_ID /bin/bash -c "$hij_c"
 docker exec $random_con_ID /bin/bash -c "birdc configure"
 echo "####### $1 - $2 Prefix is successfully hijacked #######"
