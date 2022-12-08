@@ -876,7 +876,7 @@ class Docker(Compiler):
             dockerfile += 'RUN curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\n'
             dockerfile += 'RUN . $HOME/.cargo/env\n'
             dockerfile += 'ENV PATH="/root/.cargo/bin:${PATH}"\n'
-            dockerfile += 'RUN cargo install -f routinator\n'
+            dockerfile += 'RUN cargo install --version 0.11.3 -f routinator\n'
             dockerfile += 'RUN routinator init --accept-arin-rpa\n'
             dockerfile += 'RUN routinator -v vrps -o ROAs.csv\n'
 
