@@ -887,10 +887,11 @@ class Docker(Compiler):
         else:
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
                 startCommands=start_commands, rtrServer='echo'))
-
+            
+        dockerfile += 'RUN apt install traceroute -y'
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
-
+        
         dockerfile += 'RUN chmod +x /start.sh\n'
         dockerfile += 'RUN chmod +x /seedemu_sniffer\n'
         dockerfile += 'RUN chmod +x /seedemu_worker\n'
