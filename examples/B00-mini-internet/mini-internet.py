@@ -52,7 +52,7 @@ ix105.getPeeringLan().setDisplayName('Huston-105')
 # 12 Stub ASes -> 106-117
 # Total of 17
 total_ASes = 17
-dep_percentage = round((total_ASes * 50) / 100)
+dep_percentage = round((total_ASes * FLAGS.d) / 100)
 random.seed(0)
 rpki_ASes = random.sample(range(0,17), dep_percentage)
 rpki = [False] * 17
