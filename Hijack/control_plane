@@ -2,8 +2,8 @@
 
 hijacked_route=0
 no_hijacked_route=0
-Routers=($(docker ps -f "name=router" -q))
-RPKI=($(docker ps -f "name=rpki" -q))
+Routers=($(docker ps | grep "rnode" | awk '{ print $1 }'))
+RPKI=($(docker ps | grep "rnode" | grep "rpki" | awk '{ print $1 }'))
 
 for router in ${Routers[@]}; do
   text=$(docker ps --format '{{.Names}}' -f "ID=$router")
@@ -16,7 +16,7 @@ for router in ${Routers[@]}; do
     string=${string#*"$delimiter"}
   done
   echo "############### ${AS_info[0]} ###############" 
-  docker exec $router /bin/bash -c "birdc show route all | grep "74.80.186.0/25"" && let hijacked_route++ || let no_hijacked_route++ 
+  docker exec $router /bin/bash -c "birdc show route all | grep "8.8.8.0/25"" && let hijacked_route++ || let no_hijacked_route++ 
 done
 
 echo "#Routers that have the hijacked route in its RIB: $hijacked_route"
