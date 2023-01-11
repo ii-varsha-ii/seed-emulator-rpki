@@ -3,7 +3,7 @@ from seedemu.core import Binding, Filter, Emulator, Service, Router, AutonomousS
 from typing import List, Tuple, Dict
 
 def makeTransitAs(base: Base, asn: int, exchanges: List[int],
-    intra_ix_links: List[Tuple[int, int]]) -> AutonomousSystem:
+    intra_ix_links: List[Tuple[int, int]], rpki: bool) -> AutonomousSystem:
     """!
     @brief create a transit AS.
 
@@ -21,9 +21,16 @@ def makeTransitAs(base: Base, asn: int, exchanges: List[int],
 
     # Create a BGP router for each internet exchange (for peering purpose)
     for ix in exchanges:
-        routers[ix] = transit_as.createRouter('r{}'.format(ix))
-        routers[ix].joinNetwork('ix{}'.format(ix))
-
+        if rpki is True:
+            routers[ix] = transit_as.createRouter('r{}_rpki'.format(ix))
+            routers[ix].joinNetwork('ix{}'.format(ix))
+        else:
+            routers[ix] = transit_as.createRouter('r{}'.format(ix))
+            routers[ix].joinNetwork('ix{}'.format(ix))
+    
+    if rpki is True:
+        host_addr = '10.{}.0.74'.format(asn)
+        transit_as.createHost('host_rpki').joinNetwork('ix{}'.format(ix), address=host_addr)
     # For each pair, create an internal network to connect the BGP routers
     # from two internet exchanges. There is no need to create a full-mesh
     # network among the BGP routers. As long as they can reach each other
