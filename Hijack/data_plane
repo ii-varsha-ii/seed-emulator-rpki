@@ -1,0 +1,9 @@
+#!/bin/bash
+
+RPKI=($(docker ps -f "name=rpki" -q))
+
+for router in ${RPKI[@]}; do
+  echo "##############################"
+  echo "$(docker ps -f "name=rpki")"
+  docker exec $router /bin/bash -c "traceroute 74.80.186.0" 
+done
