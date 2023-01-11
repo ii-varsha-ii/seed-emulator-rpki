@@ -28,9 +28,6 @@ def makeTransitAs(base: Base, asn: int, exchanges: List[int],
             routers[ix] = transit_as.createRouter('r{}'.format(ix))
             routers[ix].joinNetwork('ix{}'.format(ix))
     
-    if rpki is True:
-        host_addr = '10.{}.0.74'.format(asn)
-        transit_as.createHost('host_rpki').joinNetwork('ix{}'.format(ix), address=host_addr)
     # For each pair, create an internal network to connect the BGP routers
     # from two internet exchanges. There is no need to create a full-mesh
     # network among the BGP routers. As long as they can reach each other
@@ -41,7 +38,9 @@ def makeTransitAs(base: Base, asn: int, exchanges: List[int],
         transit_as.createNetwork(name)
         routers[a].joinNetwork(name)
         routers[b].joinNetwork(name)
-
+    if rpki is True:
+        host_addr = '10.{}.0.74'.format(asn)
+        transit_as.createHost('host_rpki').joinNetwork(name, address=host_addr)
     return transit_as
 
 def createHostsOnNetwork(emu: Emulator, the_as: AutonomousSystem, network: str, 
