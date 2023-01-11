@@ -48,57 +48,57 @@ ix104.getPeeringLan().setDisplayName('Boston-104')
 ix105.getPeeringLan().setDisplayName('Huston-105')
 
 ###############################################################################
-# 5 Internet exchange -> 100-105
-# 12 Stub AS -> 106-117
+# 5 Transit ASes -> 100-105
+# 12 Stub ASes -> 106-117
 # Total of 17
 total_ASes = 17
-dep_percentage = round((total_ASes * FLAGS.d) / 100)
+dep_percentage = round((total_ASes * 50) / 100)
 random.seed(0)
-rpki_ASes = random.sample(range(100,118), dep_percentage)
-rpki = [False] * 18
-for x in range(100, 118):
+rpki_ASes = random.sample(range(0,17), dep_percentage)
+rpki = [False] * 17
+for x in range(0, 16):
        if x in rpki_ASes:
-              rpki[x-100] = True
+              rpki[x] = True
 ###############################################################################
 # Create Transit Autonomous Systems 
 
 ## Tier 1 ASes
-Makers.makeTransitAs(base, 2, [100, 101, 102, 105], 
-       [(100, 101), (101, 102), (100, 105)]
+Makers.makeTransitAs(base, 2, [100, 101, 102, 105],
+       [(100, 101), (101, 102), (100, 105)], rpki[0]
 )
 
 Makers.makeTransitAs(base, 3, [100, 103, 104, 105], 
-       [(100, 103), (100, 105), (103, 105), (103, 104)]
+       [(100, 103), (100, 105), (103, 105), (103, 104)], rpki[1]
 )
 
 Makers.makeTransitAs(base, 4, [100, 102, 104], 
-       [(100, 104), (102, 104)]
+       [(100, 104), (102, 104)], rpki[2]
 )
 
 ## Tier 2 ASes
-Makers.makeTransitAs(base, 11, [102, 105], [(102, 105)])
-Makers.makeTransitAs(base, 12, [101, 104], [(101, 104)])
+Makers.makeTransitAs(base, 11, [102, 105], [(102, 105)], rpki[3])
+Makers.makeTransitAs(base, 12, [101, 104], [(101, 104)], rpki[4])
 
 ###############################################################################
 # Create single-homed stub ASes. "None" means create a host only 
 # The /layers/EBgp.py check if the router hase rpki in the name to apply the rpki bird configuration
-Makers.makeStubAs(emu, base, 106, 100, [None], rpki[6])
-Makers.makeStubAs(emu, base, 107, 100, [None], rpki[7])
+Makers.makeStubAs(emu, base, 106, 100, [None], rpki[5])
+Makers.makeStubAs(emu, base, 107, 100, [None], rpki[6])
 
-Makers.makeStubAs(emu, base, 108, 101, [None], rpki[8])
-Makers.makeStubAs(emu, base, 109, 101, [None], rpki[9])
+Makers.makeStubAs(emu, base, 108, 101, [None], rpki[7])
+Makers.makeStubAs(emu, base, 109, 101, [None], rpki[8])
 
-Makers.makeStubAs(emu, base, 110, 102, [None], rpki[10])
+Makers.makeStubAs(emu, base, 110, 102, [None], rpki[9])
 
-Makers.makeStubAs(emu, base, 111, 103, [None], rpki[11])
-Makers.makeStubAs(emu, base, 112, 103, [None], rpki[12])
-Makers.makeStubAs(emu, base, 113, 103, [None], rpki[13])
+Makers.makeStubAs(emu, base, 111, 103, [None], rpki[10])
+Makers.makeStubAs(emu, base, 112, 103, [None], rpki[11])
+Makers.makeStubAs(emu, base, 113, 103, [None], rpki[12])
 
-Makers.makeStubAs(emu, base, 114, 104, [None], rpki[14])
-Makers.makeStubAs(emu, base, 115, 104, [None], rpki[15])
+Makers.makeStubAs(emu, base, 114, 104, [None], rpki[13])
+Makers.makeStubAs(emu, base, 115, 104, [None], rpki[14])
 
-Makers.makeStubAs(emu, base, 116, 105, [None], rpki[16])
-Makers.makeStubAs(emu, base, 117, 105, [None], rpki[17])
+Makers.makeStubAs(emu, base, 116, 105, [None], rpki[15])
+Makers.makeStubAs(emu, base, 117, 105, [None], rpki[16])
 
 # Create real-world AS.
 # AS11872 is the Syracuse University's autonomous system
