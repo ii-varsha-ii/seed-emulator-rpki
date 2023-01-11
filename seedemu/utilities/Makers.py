@@ -34,13 +34,14 @@ def makeTransitAs(base: Base, asn: int, exchanges: List[int],
     # over a single or multiple hops, it is OK.
     for (a, b) in intra_ix_links:
         name = 'net_{}_{}'.format(a, b)
-
+        if rpki is True:
+            host_addr = '10.{}.0.74'.format(asn)
+            transit_as.createHost('host_rpki').joinNetwork(name, address=host_addr)
+            rpki = False # to allow entering this if once only
         transit_as.createNetwork(name)
         routers[a].joinNetwork(name)
         routers[b].joinNetwork(name)
-    if rpki is True:
-        host_addr = '10.{}.0.74'.format(asn)
-        transit_as.createHost('host_rpki').joinNetwork(name, address=host_addr)
+
     return transit_as
 
 def createHostsOnNetwork(emu: Emulator, the_as: AutonomousSystem, network: str, 
