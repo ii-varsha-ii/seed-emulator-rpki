@@ -17,7 +17,7 @@ import random
 
 # Process command line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', type=int, required=True,
+parser.add_argument('-d', type=int, required = False, default = "",
                     help="RPKI deployment percentage")
 FLAGS = parser.parse_args()
 
@@ -51,14 +51,17 @@ ix105.getPeeringLan().setDisplayName('Huston-105')
 # 5 Transit ASes -> 100-105
 # 12 Stub ASes -> 106-117
 # Total num ASes of 17
-total_ASes =  17      
-dep_percentage = FLAGS.d/100
-true_count = int(total_ASes * dep_percentage)
-false_count = total_ASes - true_count
-rpki = [True] * true_count + [False] * false_count
-random.seed(0) 
-random.shuffle(rpki)
-
+total_ASes =  17
+if FLAGS.d:       
+  dep_percentage = FLAGS.d/100
+  true_count = int(total_ASes * dep_percentage)
+  false_count = total_ASes - true_count
+  rpki = [True] * true_count + [False] * false_count
+  random.seed(0) 
+  random.shuffle(rpki)
+else: # no percentage specified, do not deploy RPKI
+  rpki = [False] * total_ASes
+  
 ###############################################################################
 # Create Transit Autonomous Systems 
 
