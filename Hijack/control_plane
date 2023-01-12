@@ -3,7 +3,7 @@
 hijacked_route=0
 no_hijacked_route=0
 Routers=($(docker ps | grep "rnode" | awk '{ print $1 }'))
-RPKI=($(docker ps | grep "rnode" | grep "rpki" | awk '{ print $1 }'))
+RPKI=($(docker ps | grep "hnode" | grep "rpki" | awk '{ print $1 }'))
 
 for router in ${Routers[@]}; do
   text=$(docker ps --format '{{.Names}}' -f "ID=$router")
@@ -21,4 +21,4 @@ done
 
 echo "#Routers that have the hijacked route in its RIB: $hijacked_route"
 echo "#Routers that do not have the hijacked route in its RIB: $no_hijacked_route"
-echo "#ASs deployed RPKI: $(echo ${#RPKI[*]})"
+echo "#ASes deployed RPKI: $(echo ${#RPKI[*]})"
