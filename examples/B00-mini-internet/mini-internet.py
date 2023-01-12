@@ -17,7 +17,7 @@ import random
 
 # Process command line arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', type=int, required = False, default = "",
+parser.add_argument('-d', type=int, required = False,
                     help="RPKI deployment percentage")
 FLAGS = parser.parse_args()
 
