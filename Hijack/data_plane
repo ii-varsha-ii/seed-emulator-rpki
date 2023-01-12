@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RPKI=($(docker ps -f "name=host_rpki" -q))
+RPKI=($(docker ps | grep "hnode" | awk '{ print $1 }'))
 
 for host in ${RPKI[@]}; do
  
@@ -12,10 +12,10 @@ for host in ${RPKI[@]}; do
     AS_info+=( "${string%%"$delimiter"*}" )
     string=${string#*"$delimiter"}
   done
-  echo "##############################"
-  echo "#### ASN: ${AS_info[0]} ## AS IP: ${AS_info[2]}"
-  echo "############### Ping ###############"
-  docker exec $host /bin/bash -c "ping -c 5 8.8.8.8"
-  echo "############### Traceroute ###############"
-  docker exec $host /bin/bash -c "traceroute -m 10 8.8.8.8" 
+  echo "################################################################"
+  echo "#### ASN: ${AS_info[0]} ### AS IP: ${AS_info[2]} ####"
+  echo "--------------- Ping ---------------"
+  docker exec $host /bin/bash -c "ping -c 10 1.1.1.1"
+  echo "--------------- Traceroute ---------------"
+  docker exec $host /bin/bash -c "traceroute -m 25 1.1.1.1" 
 done
