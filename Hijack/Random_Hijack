@@ -2,8 +2,8 @@
 
 # To run This hijack provide the Prefix as command arguments 
 # ex: ./Random_Hijack 74.80.186.0/25 74.80.186.128/25
-
-random_con_ID=$(docker ps -f "name=router" -q | shuf -n 1)
+# The following command will only inject the hijacking on an AS that does not have rpki and not a real world router
+random_con_ID=$(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' | shuf -n 1)
 
 hij_c="echo -e 'protocol static hijacks {\n    ipv4 {\n        table t_bgp;\n    };
     route $1 blackhole   { bgp_large_community.add(LOCAL_COMM); };
