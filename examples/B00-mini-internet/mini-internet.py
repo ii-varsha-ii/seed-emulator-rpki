@@ -50,15 +50,15 @@ ix105.getPeeringLan().setDisplayName('Huston-105')
 ###############################################################################
 # 5 Transit ASes -> 100-105
 # 12 Stub ASes -> 106-117
-# Total of 17
-total_ASes = 17
-dep_percentage = round((total_ASes * FLAGS.d) / 100)
-random.seed(0)
-rpki_ASes = random.sample(range(0,17), dep_percentage)
-rpki = [False] * 17
-for x in range(0, 16):
-       if x in rpki_ASes:
-              rpki[x] = True
+# Total num ASes of 17
+total_ASes =  17      
+dep_percentage = FLAGS.d/100
+true_count = int(total_ASes * dep_percentage)
+false_count = total_ASes - true_count
+rpki = [True] * true_count + [False] * false_count
+random.seed(0) 
+random.shuffle(rpki)
+
 ###############################################################################
 # Create Transit Autonomous Systems 
 
