@@ -16,7 +16,7 @@ for router in ${Routers[@]}; do
     string=${string#*"$delimiter"}
   done
   echo "############### ${AS_info[0]} _ ${AS_info[1]} ###############"  
-  docker exec $router /bin/bash -c "birdc show route all | grep "8.8.8.0/25"" && let hijacked_route++ || let no_hijacked_route++ 
+  docker exec $router /bin/bash -c "birdc show route all | grep -E '1.1.1.0/25|1.1.1.128/25' | grep "1.1.1.128/25"" && let hijacked_route++ || let no_hijacked_route++ 
 done
 
 echo "#Routers that have the hijacked route in its RIB: $hijacked_route"
