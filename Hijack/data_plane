@@ -16,6 +16,6 @@ for host in ${RPKI[@]}; do
   echo "#### ASN: ${AS_info[0]} ## AS IP: ${AS_info[2]}"
   echo "############### Ping ###############"
   docker exec $host /bin/bash -c "ping -c 5 8.8.8.8"
-  echo "############### Traceroute###############"
+  echo "############### Traceroute ###############"
   docker exec $host /bin/bash -c "traceroute -m 10 8.8.8.8" 
 done
