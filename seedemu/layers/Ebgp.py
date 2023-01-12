@@ -45,8 +45,10 @@ EbgpFileTemplates["rnode_bird_peer_rpki"] = """
     neighbor {peerAddress} as {peerAsn};
 
     ipv4 {{
+       table t_bgp;
        import filter peer_in_v4;
        export all;
+       next hop self;
     }};
 """
 EbgpFileTemplates["rpki_protocol"] = """\
