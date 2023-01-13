@@ -21,12 +21,11 @@ while [[ $string ]]; do
 done
 
 echo "#####################################################"
-echo "Hijacker ASN: $( tr -d 'as | r' <<<${AS_info[0]})"
+echo "Hijacker ASN: $( tr -d 'as | r' <<<${AS_info[1]})"
 echo "Hijacker IP: ${AS_info[2]}"
 echo "Hijacked Prefix: $1 - $2"
 echo "AS Router Container ID: $random_con_ID"
 
-# docker exec $random_con_ID /bin/bash -c "ip addr add $1"
 docker exec --workdir /etc/bird $random_con_ID /bin/bash -c "$hij_c"
 docker exec $random_con_ID /bin/bash -c "birdc configure"
 echo "####### $1 - $2 Prefix is successfully hijacked #######"
