@@ -107,7 +107,11 @@ Makers.makeStubAs(emu, base, 117, 105, [None], rpki[16])
 # AS11872 is the Syracuse University's autonomous system
 
 as11872 = base.createAutonomousSystem(11872)
-as11872.createRealWorldRouter('rw').joinNetwork('ix102', '10.102.0.118')
+as11872.createNetwork('net0')
+as11872.createRealWorldRouter('rw_rpki').joinNetwork('ix102', '10.102.0.118').joinNetwork('net0')
+
+#host_addr = '10.{}.0.74'.format(asn)
+as11872.createHost('host_rpki').joinNetwork('net0')
 
 # Allow outside computer to VPN into AS-108's network
 as108 = base.getAutonomousSystem(108)
