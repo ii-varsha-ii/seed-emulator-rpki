@@ -57,7 +57,7 @@ if FLAGS.d:
   true_count = int(total_ASes * dep_percentage)
   false_count = total_ASes - true_count
   rpki = [True] * true_count + [False] * false_count
-  random.seed(0) 
+  #random.seed(0) 
   random.shuffle(rpki)
 else: # no percentage specified, do not deploy RPKI
   rpki = [False] * total_ASes
