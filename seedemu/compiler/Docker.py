@@ -878,7 +878,8 @@ class Docker(Compiler):
             dockerfile += 'ENV PATH="/root/.cargo/bin:${PATH}"\n'
             dockerfile += 'RUN cargo install --version 0.11.3 -f routinator\n'
             dockerfile += 'RUN routinator init --accept-arin-rpa\n'
-            dockerfile += 'RUN routinator -v vrps -o ROAs.csv --logfile /var/log/routinator.log\n'
+            dockerfile += 'RUN routinator -v vrps -o ROAs.csv\n'
+            #dockerfile += 'RUN routinator -v vrps -o ROAs.csv --logfile /var/log/routinator.log\n' [returned a non-zero code: 1 when building]
   
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
                 startCommands=start_commands,
