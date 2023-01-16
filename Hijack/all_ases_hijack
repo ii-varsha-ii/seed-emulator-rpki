@@ -11,15 +11,17 @@ if [ "$3" ]
 fi
 
 if [ -s hijacking_container.txt ]; then
-  cat hijacking_container.txt | while read line
+ 
+  for line in $(cat hijacking_container.txt)
   do
-    con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' | grep -v "$line"))
-   done
+    con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' | grep -v "$line")) 
+  done 
 else
-      con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' ))
+     con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' ))
 fi
 
 if (( ${#con_ID[@]} )); then
+  
   hij_c="echo -e 'protocol static hijacks {\n    ipv4 {\n        table t_bgp;\n    };
       route $1 blackhole   { bgp_large_community.add(LOCAL_COMM); };
      route $2 blackhole { bgp_large_community.add(LOCAL_COMM); };
