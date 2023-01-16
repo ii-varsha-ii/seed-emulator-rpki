@@ -21,7 +21,7 @@ while [[ $string ]]; do
 done
 
 echo "#####################################################"
-echo "Hijacker ASN: $( tr -d 'as | r' <<<${AS_info[1]})"
+#echo "Hijacker ASN: $( tr -d 'as | r' <<<${AS_info[1]})"
 echo "Hijacker IP: ${AS_info[2]}"
 echo "Hijacked Prefix: $1 - $2"
 echo "AS Router Container ID: $random_con_ID"
