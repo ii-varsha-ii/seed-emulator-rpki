@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# To run This hijack provide the Prefix as command arguments
+# ex: ./Random_Hijack 74.80.186.0/25 74.80.186.128/25
+# The following command will only inject the hijacking on an AS that does not have rpki and not a real world router
+
+if [ "$3" ]
+  then
+    docker exec --workdir /etc/bird $3 /bin/bash -c "head -n -7 bird.conf | tee "bird.conf"" >/dev/null
+    docker exec $3 /bin/bash -c "birdc configure"
+fi
+
+if [ -s diff.txt ]; then
+  cat hijacking_container.txt | while read line
+  do
+    con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' | grep -v "$line"))
+   done
+else
+      con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' ))
+fi
+
+if (( ${#con_ID[@]} )); then
+  hij_c="echo -e 'protocol static hijacks {\n    ipv4 {\n        table t_bgp;\n    };
+      route $1 blackhole   { bgp_large_community.add(LOCAL_COMM); };
+     route $2 blackhole { bgp_large_community.add(LOCAL_COMM); };
+  }' >> bird.conf"
+
+  text=$(docker ps --format '{{.Names}}' -f "ID=${con_ID[0]}")
+  delimiter="-"
+  string=$text$delimiter
+
+  AS_info=()
+  while [[ $string ]]; do
+    AS_info+=( "${string%%"$delimiter"*}" )
+    string=${string#*"$delimiter"}
+  done
+
+  echo "#####################################################"
+  #echo "Hijacker ASN: $( tr -d 'as | r' <<<${AS_info[1]})"
+  echo "Hijacker IP: ${AS_info[2]}"
+  echo "Hijacked Prefix: $1 - $2"
+  echo "AS Router Container ID: ${con_ID[0]}"
+  echo ${con_ID[0]} >> hijacking_container.txt
+  docker exec --workdir /etc/bird ${con_ID[0]} /bin/bash -c "$hij_c"
+  docker exec ${con_ID[0]} /bin/bash -c "birdc configure"
+  echo "####### $1 - $2 Prefix is successfully hijacked #######"
+fi
