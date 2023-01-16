@@ -10,7 +10,7 @@ if [ "$3" ]
     docker exec $3 /bin/bash -c "birdc configure"
 fi
 
-if [ -s diff.txt ]; then
+if [ -s hijacking_container.txt ]; then
   cat hijacking_container.txt | while read line
   do
     con_ID=($(docker ps | grep "rnode" | grep -v "rpki" | grep -v "11872_rw" | grep -v "br-net" | awk '{ print $1 }' | grep -v "$line"))
