@@ -22,3 +22,6 @@ let no_hijacked_route--
 echo "#Routers that have the hijacked route in its RIB: $hijacked_route"
 echo "#Routers that do not have the hijacked route in its RIB: $no_hijacked_route"
 echo "#ASes deployed RPKI: $(echo ${#RPKI[*]})"
+for i in  ${RPKI[@]}; do
+ echo "$(docker ps  --format '{{.Names}}' -f "ID=$i")"
+done
