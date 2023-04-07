@@ -849,8 +849,13 @@ class Docker(Compiler):
                     ' '.join(sorted(softList)))
 
         dockerfile += 'RUN curl -L https://grml.org/zsh/zshrc > /root/.zshrc\n'
-        dockerfile = 'FROM {}\n'.format(md5(image.getName().encode('utf-8')).hexdigest()) + dockerfile
-        self._used_images.add(image.getName())
+
+        rpki_image = "bashayer123/rpki_image_one_tal:latest"
+        if 'host_rpki' in real_nodename:
+            dockerfile = 'FROM {}\n'.format(rpki_image)
+        else:
+            dockerfile = 'FROM {}\n'.format(md5(image.getName().encode('utf-8')).hexdigest()) + dockerfile            
+            self._used_images.add(image.getName())
 
         for cmd in node.getBuildCommands(): dockerfile += 'RUN {}\n'.format(cmd)
 
@@ -869,18 +874,18 @@ class Docker(Compiler):
         #BA - for rpki installtion use -> real_nodename
         if 'host_rpki' in real_nodename:
 
-            dockerfile += 'RUN apt-get update && apt-get upgrade -y\n'
-            dockerfile += 'RUN apt install rsync grsync -y\n'
-            dockerfile += 'RUN apt install build-essential -y\n'
-            dockerfile += 'RUN apt-get install manpages-dev\n'
-            dockerfile += 'RUN curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\n'
-            dockerfile += 'RUN . $HOME/.cargo/env\n'
-            dockerfile += 'ENV PATH="/root/.cargo/bin:${PATH}"\n'
-            dockerfile += 'RUN cargo install --version 0.11.3 -f routinator\n'
-            dockerfile += 'RUN routinator init --accept-arin-rpa\n'
-            dockerfile += 'RUN routinator -v vrps -o ROAs.csv\n'
+            #dockerfile += 'RUN apt-get update && apt-get upgrade -y\n'
+            #dockerfile += 'RUN apt install rsync grsync -y\n'
+            #dockerfile += 'RUN apt install build-essential -y\n'
+            #dockerfile += 'RUN apt-get install manpages-dev\n'
+            #dockerfile += 'RUN curl --proto \'=https\' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y\n'
+            #dockerfile += 'RUN . $HOME/.cargo/env\n'
+            #dockerfile += 'ENV PATH="/root/.cargo/bin:${PATH}"\n'
+            #dockerfile += 'RUN cargo install --version 0.11.3 -f routinator\n'
+            #dockerfile += 'RUN routinator init --accept-arin-rpa\n'
+            #dockerfile += 'RUN routinator -v vrps -o ROAs.csv\n'
             #dockerfile += 'RUN routinator -v vrps -o ROAs.csv --logfile /var/log/routinator.log\n' [returned a non-zero code: 1 when building]
-  
+     
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
                 startCommands=start_commands,
                 rtrServer='routinator server --rtr {ip}:3323 --refresh=300 --detach &\n'.format(
@@ -889,7 +894,6 @@ class Docker(Compiler):
             dockerfile += self._addFile('/start.sh', DockerCompilerFileTemplates['start_script'].format(
                 startCommands=start_commands, rtrServer='echo'))
             
-        dockerfile += 'RUN apt install traceroute -y\n'
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
         
