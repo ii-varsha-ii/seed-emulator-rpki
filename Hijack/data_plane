@@ -2,6 +2,9 @@
 
 RPKI=($(docker ps | grep "hnode" | grep -v "rpki" | awk '{ print $1 }'))
 
+# create CSV file and add header row
+echo "ASN,AS IP,Ping Status,Traceroute Status" > results.csv
+
 for host in ${RPKI[@]}; do
  
   text=$(docker ps --format '{{.Names}}' -f "ID=$host")
@@ -15,7 +18,23 @@ for host in ${RPKI[@]}; do
   echo "################################################################"
   echo "#### ASN: ${AS_info[0]} ### AS IP: ${AS_info[2]} ####"
   echo "--------------- Ping ---------------"
-  docker exec $host /bin/bash -c "ping -c 10 8.8.8.8"
+  
+  if docker exec $host /bin/bash -c "ping -q -c 10 10.23.4.1" >/dev/null; then
+    ping_status="successful"
+  else
+    ping_status="failed"
+  fi
+  
   echo "--------------- Traceroute ---------------"
-  docker exec $host /bin/bash -c "traceroute -m 25 8.8.8.8" 
+  
+  docker exec $host /bin/bash -c "traceroute -q 1 -m 25 -n 8.8.8.8" | awk 'END {if ($NF=="ms") exit 0; else exit 1}'
+  
+  if [ $? -eq 0 ]; then
+    traceroute_status="successful"
+  else
+    traceroute_status="failed"
+  fi
+  
+  # add results to CSV file
+  echo "${AS_info[0]},${AS_info[2]},$ping_status,$traceroute_status" >> results.csv
 done
