@@ -13,4 +13,3 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN cargo install --version 0.11.3 -f routinator
 RUN routinator init --accept-arin-rpa
 RUN routinator -v vrps -o ROAs.csv
-RUN apt install traceroute -y
