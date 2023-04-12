@@ -2,7 +2,7 @@
 
 hijacked_route=0
 no_hijacked_route=0
-Routers=($(docker ps | grep "rnode" | awk '{ print $1 }'))
+Routers=($(docker ps | grep "rnode" | awk '{ print $1 }' | grep -v $(docker ps --filter name=as11872r-rw -q)))
 RPKI=($(docker ps | grep "hnode" | grep "rpki" | awk '{ print $1 }'))
 
 for router in ${Routers[@]}; do
@@ -16,12 +16,18 @@ for router in ${Routers[@]}; do
     string=${string#*"$delimiter"}
   done
   echo "############### ${AS_info[0]} _ ${AS_info[1]} ###############"  
-  docker exec $router /bin/bash -c "birdc show route all | grep -E '(^|\s)8.8.8.0/25($|\s)'" && let hijacked_route++ || let no_hijacked_route++ 
+  if docker exec $router /bin/bash -c "birdc show route all | grep -E '(^|\s)41.76.168.0/25($|\s)'"; then
+    echo "Hijacked route found in router: $router"
+    let hijacked_route++
+  else
+    echo "Hijacked route not found in router: $router"
+    let no_hijacked_route++
+  fi
 done
-let no_hijacked_route--
 echo "#Routers that have the hijacked route in its RIB: $hijacked_route"
 echo "#Routers that do not have the hijacked route in its RIB: $no_hijacked_route"
 echo "#ASes deployed RPKI: $(echo ${#RPKI[*]})"
+echo "ASes with RPKI"
 for i in  ${RPKI[@]}; do
  echo "$(docker ps  --format '{{.Names}}' -f "ID=$i")"
 done
