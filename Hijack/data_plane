@@ -3,7 +3,7 @@
 RPKI=($(docker ps | grep "hnode" | grep -v "rpki" | awk '{ print $1 }'))
 
 # create CSV file and add header row
-echo "ASN,AS IP,Ping Status,Traceroute Status" > results.csv
+echo "ASN,AS IP,Ping Status,Traceroute Status" > dp_results
 
 for host in ${RPKI[@]}; do
  
@@ -36,5 +36,5 @@ for host in ${RPKI[@]}; do
   fi
   
   # add results to CSV file
-  echo "${AS_info[0]},${AS_info[2]},$ping_status,$traceroute_status" >> results.csv
+  echo "${AS_info[0]},${AS_info[2]},$ping_status,$traceroute_status" >> dp_results
 done
