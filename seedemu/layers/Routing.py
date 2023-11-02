@@ -10,6 +10,11 @@ debug protocols all;
 router id {routerId};
 protocol device {{
 }}
+protocol mrt {{
+      table "t_bgp";
+      filename "/etc/bird/file%M.mrt";
+      period 120;
+}}
 """
 
 RoutingFileTemplates["rnode_bird_direct_interface"] = """
