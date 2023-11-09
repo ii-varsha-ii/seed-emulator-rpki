@@ -197,6 +197,61 @@ DockerCompilerFileTemplates['local_image'] = """\
         image: {imageName}
 """
 
+DockerCompilerFileTemplates['bgp_updates_script'] = """\
+#!/bin/bash
+
+routes=(
+    "84.205.64.0"
+#    "84.205.65.0"
+#    "84.205.67.0"
+#    "84.205.68.0"
+#    "84.205.69.0"
+#    "84.205.70.0"
+#    "84.205.71.0"
+#    "84.205.74.0"
+#    "84.205.75.0"
+#    "84.205.76.0"
+#    "84.205.77.0"
+#    "84.205.78.0"
+#    "84.205.79.0"
+#    "84.205.82.0"
+#    "93.175.149.0"
+#    "93.175.153.0"
+)
+
+announcements=(0, 4, 8, 12, 16, 20)
+withdrawals=(2, 6, 10, 14, 18, 22)
+
+end_keyword="ipv4 { table t_rw; import all; };"
+config_file="/etc/bird/bird.conf"
+
+current_hr=$(date +%H)
+
+if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( current_hr -eq 12 ) || ( current_hr -eq 16 ) || ( current_hr -eq 20 ) ]]; then
+    echo "#### Announcement at ${current_hr} "
+    for route in ${routes[*]}; do
+        var="route $route/24 via $(ip rou show default | cut -d' ' -f3);"
+        echo "sed -i '/$end_keyword/ a $var' $config_file"
+        sed -i "/${end_keyword}/ a    ${var}" ${config_file}
+        echo "####### $route announced #######"
+    done
+else
+    echo "#### Withdrawal at ${current_hr} "
+    for route in ${routes[*]}; do
+        var="route $route\/24 via $(ip rou show default | cut -d' ' -f3);"
+        echo "sed -i '/$var/d' $config_file"
+        sed -i "/${var}/d" ${config_file}
+        echo "####### $route withdrawn #######"
+    done
+fi
+
+echo "## Process end ##"
+"""
+
+DockerCompilerFileTemplates['bgp_updates_cron'] = """\
+* */2 * * * bash /bgp_updates_script.sh >> /var/log/bgp_updates_log
+"""
+
 
 class DockerImage(object):
     """!
@@ -896,10 +951,15 @@ class Docker(Compiler):
         dockerfile += 'RUN apt install traceroute -y\n'     
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
-        
+        dockerfile += self._addFile('/bgp_updates_script', DockerCompilerFileTemplates['bgp_updates_script'])
+        dockerfile += self._addFile('/etc/cron.d/bgp_updates_cron', DockerCompilerFileTemplates['bgp_updates_cron'])
+
         dockerfile += 'RUN chmod +x /start.sh\n'
         dockerfile += 'RUN chmod +x /seedemu_sniffer\n'
         dockerfile += 'RUN chmod +x /seedemu_worker\n'
+
+        dockerfile += 'RUN chmod 0644 /etc/cron.d/bgp_updates_cron'
+        dockerfile += 'RUN crontab /etc/cron.d/bgp_updates_cron'
 
         for file in node.getFiles():
             (path, content) = file.get()
