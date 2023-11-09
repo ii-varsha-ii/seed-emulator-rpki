@@ -13,7 +13,7 @@ protocol device {{
 protocol mrt {{
       table "t_bgp";
       filename "/etc/bird/file%M.mrt";
-      period 120;
+      period 7200;
 }}
 """
 
@@ -38,7 +38,7 @@ protocol kernel {{
 protocol mrt {{
       table "t_bgp";
       filename "/etc/bird/file%M.mrt";
-      period 120;
+      period 7200;
 }}
 """
 

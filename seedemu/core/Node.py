@@ -911,6 +911,7 @@ if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( 
         var="route $route/24 via $(ip rou show default | cut -d' ' -f3);"
         echo "sed -i '/$end_keyword/ a $var' $config_file"
         sed -i "/${end_keyword}/ a    ${var}" ${config_file}
+        birdc configure
         echo "####### $route announced #######"
     done
 else
@@ -919,6 +920,7 @@ else
         var="route $route\/24 via $(ip rou show default | cut -d' ' -f3);"
         echo "sed -i '/$var/d' $config_file"
         sed -i "/${var}/d" ${config_file}
+        birdc configure
         echo "####### $route withdrawn #######"
     done
 fi
