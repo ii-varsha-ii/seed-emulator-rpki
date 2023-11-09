@@ -219,9 +219,6 @@ routes=(
 #    "93.175.153.0"
 )
 
-announcements=(0, 4, 8, 12, 16, 20)
-withdrawals=(2, 6, 10, 14, 18, 22)
-
 end_keyword="ipv4 { table t_rw; import all; };"
 config_file="/etc/bird/bird.conf"
 
@@ -951,19 +948,18 @@ class Docker(Compiler):
         dockerfile += 'RUN apt install traceroute -y\n'     
         dockerfile += self._addFile('/seedemu_sniffer', DockerCompilerFileTemplates['seedemu_sniffer'])
         dockerfile += self._addFile('/seedemu_worker', DockerCompilerFileTemplates['seedemu_worker'])
-        dockerfile += self._addFile('/bgp_updates_script', DockerCompilerFileTemplates['bgp_updates_script'])
-        dockerfile += self._addFile('/etc/cron.d/bgp_updates_cron', DockerCompilerFileTemplates['bgp_updates_cron'])
 
         dockerfile += 'RUN chmod +x /start.sh\n'
         dockerfile += 'RUN chmod +x /seedemu_sniffer\n'
         dockerfile += 'RUN chmod +x /seedemu_worker\n'
 
-        dockerfile += 'RUN chmod 0644 /etc/cron.d/bgp_updates_cron'
-        dockerfile += 'RUN crontab /etc/cron.d/bgp_updates_cron'
-
         for file in node.getFiles():
             (path, content) = file.get()
             dockerfile += self._addFile(path, content)
+
+        if node.getName() == 'rw':
+            dockerfile += 'RUN chmod 0644 /etc/cron.d/bgp_updates_cron\n'
+            dockerfile += 'RUN crontab /etc/cron.d/bgp_updates_cron\n'
 
         for (cpath, hpath) in node.getImportedFiles().items():
             dockerfile += self._importFile(cpath, hpath)

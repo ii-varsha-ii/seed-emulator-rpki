@@ -217,6 +217,7 @@ class AutonomousSystem(Printable, Graphable, Configurable):
         router: RealWorldRouter = Node(name, NodeRole.Router, self.__asn)
         router.__class__ = RealWorldRouter
         router.initRealWorld(hideHops)
+        router.enableBGPUpdates()
 
         if prefixes == None:
             prefixes = self.getPrefixList()

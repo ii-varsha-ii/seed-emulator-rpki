@@ -878,6 +878,58 @@ gw="`ip rou show default | cut -d' ' -f3`"
 sed -i 's/!__default_gw__!/'"$gw"'/g' /etc/bird/bird.conf
 '''
 
+RouterFileTemplates['bgp_updates_script'] = """\
+#!/bin/bash
+
+routes=(
+    "84.205.64.0"
+#    "84.205.65.0"
+#    "84.205.67.0"
+#    "84.205.68.0"
+#    "84.205.69.0"
+#    "84.205.70.0"
+#    "84.205.71.0"
+#    "84.205.74.0"
+#    "84.205.75.0"
+#    "84.205.76.0"
+#    "84.205.77.0"
+#    "84.205.78.0"
+#    "84.205.79.0"
+#    "84.205.82.0"
+#    "93.175.149.0"
+#    "93.175.153.0"
+)
+
+end_keyword="ipv4 { table t_rw; import all; };"
+config_file="/etc/bird/bird.conf"
+
+current_hr=$(date +%H)
+
+if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( current_hr -eq 12 ) || ( current_hr -eq 16 ) || ( current_hr -eq 20 ) ]]; then
+    echo "#### Announcement at ${current_hr} "
+    for route in ${routes[*]}; do
+        var="route $route/24 via $(ip rou show default | cut -d' ' -f3);"
+        echo "sed -i '/$end_keyword/ a $var' $config_file"
+        sed -i "/${end_keyword}/ a    ${var}" ${config_file}
+        echo "####### $route announced #######"
+    done
+else
+    echo "#### Withdrawal at ${current_hr} "
+    for route in ${routes[*]}; do
+        var="route $route\/24 via $(ip rou show default | cut -d' ' -f3);"
+        echo "sed -i '/$var/d' $config_file"
+        sed -i "/${var}/d" ${config_file}
+        echo "####### $route withdrawn #######"
+    done
+fi
+
+echo "## Process end ##"
+"""
+
+RouterFileTemplates['bgp_updates_cron'] = """\
+* */2 * * * bash /bgp_updates_script.sh >> /var/log/bgp_updates_log
+"""
+
 class Router(Node):
     """!
     @brief Node extension class.
@@ -982,6 +1034,7 @@ class RealWorldRouter(Router):
     __realworld_routes: List[str]
     __sealed: bool
     __hide_hops: bool
+    __enable_cron: bool
 
     def initRealWorld(self, hideHops: bool):
         """!
@@ -992,6 +1045,11 @@ class RealWorldRouter(Router):
         self.__sealed = False
         self.__hide_hops = hideHops
         self.addSoftware('iptables')
+        self.addSoftware('cron')
+    def enableBGPUpdates(self):
+        self.addSoftware('cron')
+        self.setFile('/bgp_updates_script', RouterFileTemplates['bgp_updates_script'])
+        self.setFile('/etc/cron.d/bgp_updates_cron', RouterFileTemplates['bgp_updates_cron'])
 
     def addRealWorldRoute(self, prefix: str) -> RealWorldRouter:
         """!
@@ -1025,6 +1083,7 @@ class RealWorldRouter(Router):
         """
         if self.__sealed: return
         self.__sealed = True
+
         if len(self.__realworld_routes) == 0: return
         self.setFile('/rw_configure_script', RouterFileTemplates['rw_configure_script'])
         self.insertStartCommand(0, '/rw_configure_script')
