@@ -883,28 +883,28 @@ RouterFileTemplates['bgp_updates_script'] = """\
 
 routes=(
     "84.205.64.0"
-#    "84.205.65.0"
-#    "84.205.67.0"
-#    "84.205.68.0"
-#    "84.205.69.0"
-#    "84.205.70.0"
-#    "84.205.71.0"
-#    "84.205.74.0"
-#    "84.205.75.0"
-#    "84.205.76.0"
-#    "84.205.77.0"
-#    "84.205.78.0"
-#    "84.205.79.0"
-#    "84.205.82.0"
-#    "93.175.149.0"
-#    "93.175.153.0"
+    "84.205.65.0"
+    "84.205.67.0"
+    "84.205.68.0"
+    "84.205.69.0"
+    "84.205.70.0"
+    "84.205.71.0"
+    "84.205.74.0"
+    "84.205.75.0"
+    "84.205.76.0"
+    "84.205.77.0"
+    "84.205.78.0"
+    "84.205.79.0"
+    "84.205.82.0"
+    "93.175.149.0"
+    "93.175.153.0"
 )
 
 end_keyword="ipv4 { table t_rw; import all; };"
 config_file="/etc/bird/bird.conf"
 
 current_hr=$(date +%H)
-
+echo `date`
 if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( current_hr -eq 12 ) || ( current_hr -eq 16 ) || ( current_hr -eq 20 ) ]]; then
     echo "#### Announcement at ${current_hr} "
     for route in ${routes[*]}; do
@@ -929,7 +929,7 @@ echo "## Process end ##"
 """
 
 RouterFileTemplates['bgp_updates_cron'] = """\
-* */2 * * * bash /bgp_updates_script.sh >> /var/log/bgp_updates_log
+* */2 * * * bash /bgp_updates_script >> /var/log/bgp_updates_log
 """
 
 class Router(Node):
