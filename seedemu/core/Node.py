@@ -911,7 +911,7 @@ if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( 
         var="route $route/24 via $(ip rou show default | cut -d' ' -f3);"
         echo "sed -i '/$end_keyword/ a $var' $config_file"
         sed -i "/${end_keyword}/ a    ${var}" ${config_file}
-        birdc configure
+        /usr/sbin/birdc configure
         echo "####### $route announced #######"
     done
 else
@@ -920,7 +920,7 @@ else
         var="route $route\/24 via $(ip rou show default | cut -d' ' -f3);"
         echo "sed -i '/$var/d' $config_file"
         sed -i "/${var}/d" ${config_file}
-        birdc configure
+        /usr/sbin/birdc configure
         echo "####### $route withdrawn #######"
     done
 fi
@@ -1090,6 +1090,7 @@ class RealWorldRouter(Router):
         self.setFile('/rw_configure_script', RouterFileTemplates['rw_configure_script'])
         self.insertStartCommand(0, '/rw_configure_script')
         self.insertStartCommand(0, 'chmod +x /rw_configure_script')
+        self.insertStartCommand(0, 'service cron restart')
         self.addTable('t_rw')
         statics = '\n    ipv4 { table t_rw; import all; };\n    route ' + ' via !__default_gw__!;\n    route '.join(self.__realworld_routes)
         statics += ' via !__default_gw__!;\n'
