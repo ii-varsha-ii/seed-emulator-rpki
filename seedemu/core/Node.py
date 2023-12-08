@@ -906,24 +906,26 @@ config_file="/etc/bird/bird.conf"
 current_hr=$(date +%H)
 current_mn=$(date +%M)
 echo `date`
-if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( current_hr -eq 12 ) || ( current_hr -eq 16 ) || ( current_hr -eq 20 ) ]]; then
-    echo "#### Announcement at ${current_hr} "
-    for route in ${routes[*]}; do
-        var="route $route/24 via $(ip rou show default | cut -d' ' -f3);"
-        echo "sed -i '/$end_keyword/ a $var' $config_file"
-        sed -i "/${end_keyword}/ a    ${var}" ${config_file}
-        /usr/sbin/birdc configure
-        echo "####### $route announced #######"
-    done
-else
-    echo "#### Withdrawal at ${current_hr} "
-    for route in ${routes[*]}; do
-        var="route $route\/24 via $(ip rou show default | cut -d' ' -f3);"
-        echo "sed -i '/$var/d' $config_file"
-        sed -i "/${var}/d" ${config_file}
-        /usr/sbin/birdc configure
-        echo "####### $route withdrawn #######"
-    done
+if [[ ( current_mn -eq 0 ) ]]; then
+    if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( current_hr -eq 12 ) || ( current_hr -eq 16 ) || ( current_hr -eq 20 ) ]]; then
+        echo "#### Announcement at ${current_hr} "
+        for route in ${routes[*]}; do
+            var="route $route/24 via $(ip rou show default | cut -d' ' -f3);"
+            echo "sed -i '/$end_keyword/ a $var' $config_file"
+            sed -i "/${end_keyword}/ a    ${var}" ${config_file}
+            /usr/sbin/birdc configure
+            echo "####### $route announced #######"
+        done
+    else
+        echo "#### Withdrawal at ${current_hr} "
+        for route in ${routes[*]}; do
+            var="route $route\/24 via $(ip rou show default | cut -d' ' -f3);"
+            echo "sed -i '/$var/d' $config_file"
+            sed -i "/${var}/d" ${config_file}
+            /usr/sbin/birdc configure
+            echo "####### $route withdrawn #######"
+        done
+    fi
 fi
 
 echo "## Process end ##"
