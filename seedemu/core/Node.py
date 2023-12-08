@@ -905,8 +905,8 @@ config_file="/etc/bird/bird.conf"
 
 current_hr=$(date +%H)
 current_mn=$(date +%M)
-echo `date`
 if [[ ( current_mn -eq 0 ) ]]; then
+    echo `date`
     if [[ ( current_hr -eq 0 ) || ( current_hr -eq 4 ) || ( current_hr -eq 8 ) || ( current_hr -eq 12 ) || ( current_hr -eq 16 ) || ( current_hr -eq 20 ) ]]; then
         echo "#### Announcement at ${current_hr} "
         for route in ${routes[*]}; do
